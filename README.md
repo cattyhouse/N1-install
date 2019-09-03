@@ -221,6 +221,8 @@ Device         Boot   Start      End  Sectors  Size Id Type
 
 - `/boot/` 不需要 `aml_autoscript` 和 `aml_autoscript.cmd`
 
+- /etc/fstab 确认再确认!!! 尤其是 UUID
+
 - 安装到MMC后, 必须拔掉U盘才可以从MMC启动, 因为U盘的启动优先级更高
 
 ## 其他
