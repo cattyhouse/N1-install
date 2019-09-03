@@ -120,6 +120,15 @@ systemctl enable haveged
 ```bash
 systemctl enable sshd
 ```
+
+- 临时允许root密码登陆 
+
+**出于安全考虑, 建议启动N1后,删除这条,采用 `id_rsa` `ssh key` 登陆**
+
+```bash
+echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+```
+
 - 设置ip
 
 ```bash
