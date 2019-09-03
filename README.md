@@ -58,7 +58,7 @@ pacman -U linux-phicomm-n1-lts-git*
 
 - 创建 uEnv.ini
     
-    - lsblk -f 找到 /dev/sda2 的 UUID
+    - `lsblk -f` 找到 `/dev/sda2` 的 `UUID`
 
     - 生成MAC地址: `dd if=/dev/urandom bs=1024 count=1 2>/dev/null|md5sum|sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\)\(..\).*$/\1:\2:\3:\4:\5:\6/'`
 
@@ -143,13 +143,13 @@ passwd root
 
 - 启动 N1 的前提是已经刷过机
 - 刷机教程不再赘述
-- 启动成功后, aml_autoscript 以及 aml_autoscript.cmd 可以从 `/boot` 移除, 其余不要动
+- 启动成功后, `aml_autoscript` 以及 `aml_autoscript.cmd` 可以从 `/boot` 移除, 其余不要动
 
 ## MMC安装
 
 MMC的安装与U盘过程一模一样, 但有几点区别:
 
-- MMC的设备名是 `/dev/mmcblk1`, 分区必须严格按照下面的格式, 注意Start End, 否则变砖:
+- MMC的设备名是 `/dev/mmcblk1`, 分区必须严格按照下面的格式, 注意 `Start` `End`, 否则变砖:
 
 ````
 Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
@@ -173,7 +173,7 @@ Device         Boot   Start      End  Sectors  Size Id Type
 
 ## 其他
 
-### 在archlinux下面操作 uboot env
+### 在archlinux下面操作 `uboot env`
 
 - 配置文件
 
@@ -192,7 +192,7 @@ fw_printenv
 fw_setenv
 ```
 
-### 如果MMC启动失败
+### 如果 MMC 启动失败
 
 从U盘启动, 运行
 
