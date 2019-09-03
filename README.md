@@ -2,7 +2,7 @@
 
 ## 制作 `archlinux USB` 启动盘
 
-**以下均在 `archlinux arm64` 系统下面操作**
+**以下均在 `archlinux arm64` 系统下面操作, 因为需要用到的软件包 arch-install-scripts 只有 archlinux 上有. 别的系统上也许可以装, 但是比较费劲, 请自行 google** 
 
 ### 准备USB盘
 
