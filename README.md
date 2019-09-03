@@ -148,6 +148,13 @@ netctl enable eth0-dhcp
 passwd root
 ```
 
+- 退出
+
+```bash
+exit
+umount -vR /mnt
+```
+
 ### 用 archlinux 的U盘启动 N1
 
 - 启动 N1 的前提是已经刷过机
