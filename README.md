@@ -2,8 +2,6 @@
 
 ## 制作 `archlinux USB` 启动盘
 
-**以下均在 `archlinux arm64` 系统下面操作, 因为需要用到的软件包 arch-install-scripts 只有 archlinux 上有. 别的系统上也许可以装, 但是比较费劲, 请自行 google** 
-
 ### 准备USB盘
 
 - 寻找u盘设备路径
@@ -39,7 +37,7 @@ mount /dev/sda1 /mnt/boot
 
 ### 安装 archlinux 到U盘
 
-- 安装 base 
+- 安装 base (宿主是archlinux arm64系统)
 
 ```bash
 pacman -S arch-install-scripts
@@ -48,9 +46,45 @@ genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
 ```
 
-- 安装 kernel
+- 安装 kernel (宿主是archlinux arm64系统)
 
 ```bash
+cd /tmp
+for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -O https://archlinux.jerryxiao.cc/aarch64/$item ; done
+pacman -U linux-phicomm-n1-lts-git*
+```
+
+- 安装 base (宿主是其他 arm64 系统, 比如armbian)
+
+采用archlinuxarm 官方做好的base, 留意它的一些说明以及注意事项 `https://archlinuxarm.org/platforms/armv8/generic`
+
+```bash
+curl -O http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
+bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C /mnt
+```
+
+- 安装 kernel (宿主是其他 arm64 系统, 比如armbian)
+
+注意: fstab 的 sda1 和 sda2 的 UUID 需要根据你的情况写入, 查询UUID用 `lsblk -f`
+
+``` bash
+cd /mnt
+mount -t proc /proc proc/
+mount --bind /sys sys/
+mount --bind /dev dev/
+mount --bind /run run/
+cp /etc/resolv.conf etc/resolv.conf
+chroot /mnt /bin/bash
+source /etc/profile
+source ~/.bashrc
+export PS1="(chroot) $PS1"
+echo "
+# <file system> <dir> <type> <options> <dump> <pass>
+# /dev/sda2
+UUID=注意!!!sda2的UUID	/         	ext4      	rw,relatime	0 1
+# /dev/sda1
+UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
+" > /etc/fstab
 cd /tmp
 for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -O https://archlinux.jerryxiao.cc/aarch64/$item ; done
 pacman -U linux-phicomm-n1-lts-git*
