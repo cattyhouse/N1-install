@@ -52,9 +52,7 @@ arch-chroot /mnt
 
 ```bash
 cd /tmp
-
 for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -O https://archlinux.jerryxiao.cc/aarch64/$item ; done
-
 pacman -U linux-phicomm-n1-lts-git*
 ```
 
@@ -107,7 +105,7 @@ if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uIn
 ```bash
 cd /boot
 /usr/bin/mkimage -C none -A arm -T script -d aml_autoscript.cmd aml_autoscript
-/usr/bin/mkimage -C none -A arm -T script -d s905_autoscript.txt s905_autoscript
+/usr/bin/mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
 ```
 
 - 安装必要的软件
