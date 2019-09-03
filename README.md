@@ -89,6 +89,8 @@ UUID=注意!!!sda2的UUID	/         	ext4      	rw,relatime	0 1
 UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
 " > /etc/fstab
 
+pacman-key --init
+pacman-key --populate archlinuxarm
 cd /tmp
 for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
 pacman -U linux-phicomm-n1-lts-git*
