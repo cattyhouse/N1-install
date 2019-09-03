@@ -52,7 +52,7 @@ arch-chroot /mnt
 
 ```bash
 cd /tmp
-for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -O https://archlinux.jerryxiao.cc/aarch64/$item ; done
+for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
 pacman -U linux-phicomm-n1-lts-git*
 ```
 
@@ -61,7 +61,7 @@ pacman -U linux-phicomm-n1-lts-git*
 采用archlinuxarm [官方做好的base](https://archlinuxarm.org/platforms/armv8/generic), 留意它的一些说明以及注意事项, 后面提到的很多操作这个base已经做好了, 一定要完整阅读它的说明.
 
 ```bash
-curl -O http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
+curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
 bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C /mnt
 ```
 
@@ -90,7 +90,7 @@ UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dma
 " > /etc/fstab
 
 cd /tmp
-for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -O https://archlinux.jerryxiao.cc/aarch64/$item ; done
+for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
 pacman -U linux-phicomm-n1-lts-git*
 ```
 
