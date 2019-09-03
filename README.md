@@ -2,6 +2,8 @@
 
 ## 制作 `archlinux USB` 启动盘
 
+以下操作需要在ARM64系统下面进行, ARCHLINUX, ARMBIAN 或者 RASPBIAN 也行... 只要是 ARM64. 
+
 ### 准备USB盘
 
 - 寻找u盘设备路径
