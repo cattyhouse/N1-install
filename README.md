@@ -78,6 +78,7 @@ chroot /mnt /bin/bash
 source /etc/profile
 source ~/.bashrc
 export PS1="(chroot) $PS1"
+
 echo "
 # <file system> <dir> <type> <options> <dump> <pass>
 # /dev/sda2
@@ -85,6 +86,7 @@ UUID=注意!!!sda2的UUID	/         	ext4      	rw,relatime	0 1
 # /dev/sda1
 UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
 " > /etc/fstab
+
 cd /tmp
 for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -O https://archlinux.jerryxiao.cc/aarch64/$item ; done
 pacman -U linux-phicomm-n1-lts-git*
