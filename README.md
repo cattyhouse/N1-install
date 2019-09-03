@@ -131,6 +131,8 @@ echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
 
 - 设置ip
 
+为了简单起见, 这里用了dhcp, N1获取的ip到底是什么, 需要去路由器上看, 或者ping内网网段的ip找出来.
+
 ```bash
 echo "
 Description='A basic dhcp ethernet connection'
