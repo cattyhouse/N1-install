@@ -1,8 +1,8 @@
 # N1 安装 Archlinux
 
-## 制作 archlinux USB启动盘
+## 制作 `archlinux USB` 启动盘
 
-**以下均在archlinux arm 系统下面操作**
+**以下均在 `archlinux arm64` 系统下面操作**
 
 ### 准备USB盘
 
@@ -37,7 +37,7 @@ mkdir -p /mnt/boot
 mount /dev/sda1 /mnt/boot
 ```
 
-### 安装archlinux到U盘
+### 安装 archlinux 到U盘
 
 - 安装 base 
 
@@ -173,7 +173,7 @@ Device         Boot   Start      End  Sectors  Size Id Type
 
 ## 其他
 
-### 在archlinux下面操作 `uboot env`
+### 在 archlinux下面操作 `uboot env`
 
 - 配置文件
 
