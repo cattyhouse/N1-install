@@ -56,7 +56,7 @@ pacman -U linux-phicomm-n1-lts-git*
 
 - 安装 base (宿主是其他 arm64 系统, 比如armbian)
 
-采用archlinuxarm [官方做好的base](https://archlinuxarm.org/platforms/armv8/generic), 留意它的一些说明以及注意事项
+采用archlinuxarm [官方做好的base](https://archlinuxarm.org/platforms/armv8/generic), 留意它的一些说明以及注意事项, 后面提到的很多操作这个base已经做好了, 一定要完整阅读它的说明.
 
 ```bash
 curl -O http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
