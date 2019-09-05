@@ -276,5 +276,158 @@ ln -sf ../updates/brcm/brcmfmac43455-sdio.clm_blob .
 reboot
 ```
 
+# 在N1上用archlinux编译主线kernel
+
+- 感谢
+
+[@isjerryxiao](https://github.com/archlinux-jerry/pkgbuilds) for 二进制编译和下载
+
+[@RedL0tus闲鱼大佬](https://github.com/RedL0tus/Linux-Phicomm-N1) for PKGBUILD修改
+
+[@MarvelousBlack惠狐](https://github.com/MarvelousBlack/firmware-phicomm-n1_PKGBULD) for n1 dts 修改
+
+
+- 编译需要在N1上进行, 配合distcc会快很多, distcc需要在N1和x86主机上安装. [参考](https://archlinuxarm.org/wiki/Distcc_Cross-Compiling)
+
+## 手动 (不建议, 此处只是为了记录原理)
+
+- 下载archlinuxarm的linux-aarch64源代码
+
+``` bash
+mkdir -p ~/n1
+git clone https://github.com/archlinuxarm/PKGBUILDs
+cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
+```
+
+- 修改 `~/n1/linux-aarch64/PKGBUILD`
+
+    - 在 `cat "${srcdir}/config" > ./.config ` 后面插入
+    
+    ````
+    # Amlogic meson SoC TEXT_OFFSET
+    sed -i "s/TEXT_OFFSET := 0x00080000/TEXT_OFFSET := 0x01080000/g" arch/arm64/Makefile
+    sed -i "s/#error TEXT_OFFSET must be less than 2MB//g" arch/arm64/kernel/head.S
+
+    cat << EOF > ./arch/arm64/boot/dts/amlogic/meson-gxl-s905d-phicomm-n1.dts
+    // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+    /*
+    * Copyright (c) 2018 He Yangxuan
+    */
+
+    /dts-v1/;
+
+    #include "meson-gxl-s905d-p230.dts"
+
+    / {
+        compatible = "phicomm,n1", "amlogic,s905d", "amlogic,meson-gxl";
+        model = "Phicomm N1";
+
+        cvbs-connector {
+            status = "disabled";
+        };
+
+        leds {
+            compatible = "gpio-leds";
+
+            status {
+                label = "n1:white:status";
+                gpios = <&gpio_ao GPIOAO_9 GPIO_ACTIVE_HIGH>;
+                default-state = "on";
+            };
+        };
+    };
+
+
+    &ethmac {
+        pinctrl-0 = <&eth_pins>;
+        pinctrl-names = "default";
+
+        /* Select external PHY by default */
+        phy-handle = <&eth_phy0>;
+
+        amlogic,tx-delay-ns = <2>;
+
+        /* External PHY reset is shared with internal PHY Led signals */
+        snps,reset-gpio = <&gpio GPIOZ_14 0>;
+        snps,reset-delays-us = <0 10000 1000000>;
+        snps,reset-active-low;
+
+        /* External PHY is in RGMII */
+        phy-mode = "rgmii";
+
+            mdio {
+            #address-cells = <0x1>;
+            #size-cells = <0x0>;
+            compatible = "snps,dwmac-mdio";
+            phandle = <0x1a>;
+
+            eth_phy0: ethernet-phy@0 {
+                reg = <0x0>;
+                phandle = <0x1d>;
+            };
+        };
+    };
+
+    /* This UART is connected to the Bluetooth module */
+    &uart_A {
+        status = "okay";
+        pinctrl-0 = <&uart_a_pins>, <&uart_a_cts_rts_pins>;
+        pinctrl-names = "default";
+        uart-has-rtscts;
+
+        bluetooth {
+            compatible = "brcm,bcm43438-bt";
+            shutdown-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;
+            max-speed = <2000000>;
+            clocks = <&wifi32k>;
+            clock-names = "lpo";
+        };
+    };
+
+    &cvbs_vdac_port {
+        status = "disabled";
+    };
+    EOF
+    ````
+
+    - 在 `make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install` 后面增加
+
+    ````
+    # cp meson-gxl-s905d-phicomm-n1.dtb as dtb.img, for s905_autoscript to load
+    cp "${pkgdir}/boot/dtbs/amlogic/meson-gxl-s905d-phicomm-n1.dtb" "${pkgdir}/boot/dtb.img" 
+    ````
+
+    - 修改 `pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-chromebook")` 为 `pkgname=("${pkgbase}" "${pkgbase}-headers")` 避免编译chromebook的kernel
+
+- 编译 kernel (使用distcc的情况下大约3小时~4小时)
+
+````
+cd ~/n1/linux-aarch64
+makepkg -s
+````
+
+- 安装 kernel
+
+````
+pacman -U *.pkg.tar.xz
+````
+
+## 自动 (建议使用的方法)
+
+````
+git clone https://github.com/archlinux-jerry/pkgbuilds
+cd pkgbuilds/linux-phicomm-n1
+makepkg -s
+pacman -U *.pkg.tar.xz
+````
+
+## 二进制 (懒人版)
+
+```bash
+for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
+
+pacman -U *.pkg.tar.xz
+```
+
 
 
