@@ -259,7 +259,22 @@ fw_setenv
 ```bash
 fw_setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; run start_mmc_autoscript;"
 fw_setenv start_mmc_autoscript "if fatload mmc 1 1020000 s905_autoscript; then autoscr 1020000; fi;"
-````
+```
+
+### 关于 Wi-Fi 和 蓝牙, 在 5.2.x mainline kernel上似乎完美
+
+```bash
+#删除遗留的东西
+cd /lib/firmware/brcm
+find . -name "*43455*" -exec rm {} \;
+#重新安装linux-firmware, 并且安装  firmware-raspberrypi
+pacman -S linux-firmware firmware-raspberrypi
+#软连接所需要的文件, 消除dmesg -2 报错
+ln -sf ../updates/brcm/brcmfmac43455-sdio.txt .
+ln -sf ../updates/brcm/brcmfmac43455-sdio.txt brcmfmac43455-sdio.phicomm,n1.txt
+ln -sf ../updates/brcm/brcmfmac43455-sdio.clm_blob .
+reboot
+```
 
 
 
