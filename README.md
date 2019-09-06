@@ -58,7 +58,19 @@ pacman -U linux-phicomm-n1-*
 
 - 安装 base (宿主是其他 arm64 系统, 比如armbian)
 
-采用archlinuxarm [官方做好的base](https://archlinuxarm.org/platforms/armv8/generic), 留意它的一些说明以及注意事项, 后面提到的很多操作这个base已经做好了, 一定要完整阅读它的说明.
+采用archlinuxarm [官方做好的base](https://archlinuxarm.org/platforms/armv8/generic), 留意它的一些说明以及注意事项, 后面提到的很多操作这个base已经做好了, 一定要完整阅读它的说明:
+
+````
+默认安装了的软件包 openssh,haveged
+默认安装了linux内核, 后面我们在安装N1的内核的时候, 会自动卸载这个内核.
+root的默认密码是root, 后面可以自行重命名
+包含一个alarm的普通用户, 不需要可以运行 userdel alarm 删除掉
+sshd默认启动
+haveged 默认启动
+systemd-networkd 默认启动, 我们需要disable掉这个服务
+systemd-resolved 默认启动, 我们需要disable掉这个服务, 然后手动编辑/etc/resolv.conf的DNS
+systemd-timesyncd 时间同步服务默认启动.这个不需要做什么修改
+````
 
 ```bash
 curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
@@ -94,7 +106,8 @@ export PS1="(chroot) $PS1"
 # 因为 archlinuxarm 官方的这个base默认启动了这两个服务配置网络, 我们后面用的是netctl的方式, 所以必须disable这两个服务
 systemctl disable systemd-networkd
 systemctl disable systemd-resolved
-
+# mkimage命令需要安装 uboot-tools
+pacman -S uboot-tools
 echo "
 # <file system> <dir> <type> <options> <dump> <pass>
 # /dev/sda2
@@ -105,6 +118,7 @@ UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dma
 
 pacman-key --init
 pacman-key --populate archlinuxarm
+
 cd /tmp
 for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
 pacman -U linux-phicomm-n1-*
