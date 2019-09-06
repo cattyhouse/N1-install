@@ -148,30 +148,39 @@ ethaddr=生成的MAC地址' > /boot/uEnv.ini
 aml_autoscript.cmd
 
 ```bash
-echo '
-setenv bootcmd "run start_autoscript; run storeboot;"
-setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; run start_mmc_autoscript;"
-setenv start_mmc_autoscript "if fatload mmc 1 1020000 s905_autoscript; then autoscr 1020000; fi;"
+echo 'setenv bootcmd "run start_autoscript; run storeboot;"
+setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; if mmcinfo; then run start_mmc_autoscript; fi; run start_emmc_autoscript;"
+setenv start_emmc_autoscript "if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;"
+setenv start_mmc_autoscript "if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;"
 setenv start_usb_autoscript "if fatload usb 0 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 1 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 2 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 3 1020000 s905_autoscript; then autoscr 1020000; fi;"
 setenv upgrade_step "2"
 saveenv
 sleep 1
-reboot
-' > /boot/aml_autoscript.cmd
+reboot' > /boot/aml_autoscript.cmd
 ```
 
 s905_autoscript.cmd
 
 ```bash
-echo '
-setenv env_addr "0x10400000"
+echo 'setenv env_addr "0x10400000"
 setenv kernel_addr "0x11000000"
 setenv initrd_addr "0x13000000"
 setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
 if fatload usb 0 ${kernel_addr} zImage; then if fatload usb 0 ${initrd_addr} uInitrd; then if fatload usb 0 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 0 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
 if fatload usb 1 ${kernel_addr} zImage; then if fatload usb 1 ${initrd_addr} uInitrd; then if fatload usb 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
-if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload mmc 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
-' > /boot/s905_autoscript.cmd
+if fatload mmc 0 ${kernel_addr} zImage; then if fatload mmc 0 ${initrd_addr} uInitrd; then if fatload mmc 0 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload mmc 0 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;' > /boot/s905_autoscript.cmd
+```
+
+emmc_autoscript.cmd
+
+```bash
+echo 'setenv env_addr "0x10400000"
+setenv kernel_addr "0x11000000"
+setenv initrd_addr "0x13000000"
+setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
+if fatload usb 0 ${kernel_addr} zImage; then if fatload usb 0 ${initrd_addr} uInitrd; then if fatload usb 0 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 0 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
+if fatload usb 1 ${kernel_addr} zImage; then if fatload usb 1 ${initrd_addr} uInitrd; then if fatload usb 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
+if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload mmc 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;' > /boot/emmc_autoscript.cmd
 ```
 
 生成二进制文件
@@ -180,18 +189,22 @@ if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uIn
 cd /boot
 /usr/bin/mkimage -C none -A arm -T script -d aml_autoscript.cmd aml_autoscript
 /usr/bin/mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
+/usr/bin/mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
+# 说明: 
+# uboot env 默认的参数为 
+# start_autoscript=if usb start ; then run start_usb_autoscript; fi; if mmcinfo; then run start_mmc_autoscript; fi; run start_emmc_autoscript;
+# 而 start_mmc_autoscript=if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi; 是不能启动mmc的, 因为N1的mmc为mmc 1, 所以会继续运行 start_emmc_autoscript
+# 而 start_emmc_autoscript=if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi; 它需要 emmc_autoscript 这个文件.
+# 所以在N1上, s905_autoscript用于启动U盘, emmc_autoscript 用于启动 mmc. aml_autoscript 用于首次启动N1的时候的初始化(一般情况下不需要, 因为里面的内容是uboot env 默认的配置, 制作这个是以防万一)
+
 ```
 
-- 安装必要的软件
+- 安装必要的软件并开机启动
 
 ```bash
 pacman -S haveged
 systemctl enable haveged
-```
-
-- 开机启动sshd
-
-```bash
+pacman -S openssh
 systemctl enable sshd
 ```
 
@@ -235,28 +248,8 @@ umount -vR /mnt
 
 - 启动 N1 的前提是已经刷过机
 - 刷机教程不再赘述
-- 启动成功后, `aml_autoscript` 以及 `aml_autoscript.cmd` 从 `/boot` 移除, 其余不要动
 
 ## MMC安装
-
-### 准备工作, uboot env 设置 
-
-- 配置文件
-
-```bash
-echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
-```
-- 确保可以打印 uboot env
-
-```bash
-fw_printenv 
-```
-- 设置 uboot env 确保可以从mmc启动
-
-```bash
-fw_setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; run start_mmc_autoscript;"
-fw_setenv start_mmc_autoscript "if fatload mmc 1 1020000 s905_autoscript; then autoscr 1020000; fi;"
-```
 
 ### 方法一: 全新安装
 
@@ -316,26 +309,56 @@ rsync -avPhHAX --numeric-ids --one-file-system --delete --exclude={"/dev/*","/pr
 lsblk -f # 获取 mmcblk1p1 和 mmcblk1p2 的 UUID, 并记住
 vim /mnt/boot/uEnv.ini #将里面的UUID更换成 /dev/mmcblk1p2 的UUID
 vim /mnt/etc/fstab # 修改注释里面的sda1 为 mmcblk1p1, 并更换为对应的UUID, 修改注释里面的sda2 为 mmcblk1p2, 并更换为对应的UUID.
-# 卸载mmc
+# umount mmc 并关机
 cd ~
 umount -vR /mnt
+halt
 ```
-- 拔掉U盘, 断电重启.
+- 拔掉U盘, 拔插电源重启
 
-### 关于 Wi-Fi 和 蓝牙, 在 5.2.x mainline kernel上似乎完美
+## Post Install
 
 ```bash
-#删除遗留的东西
-cd /lib/firmware/brcm
-find . -name "*43455*" -exec rm {} \;
-#重新安装linux-firmware, 并且安装  firmware-raspberrypi
-pacman -S linux-firmware firmware-raspberrypi
-#软连接所需要的文件, 消除dmesg -2 报错
-ln -sf ../updates/brcm/brcmfmac43455-sdio.txt .
-ln -sf ../updates/brcm/brcmfmac43455-sdio.txt brcmfmac43455-sdio.phicomm,n1.txt
-ln -sf ../updates/brcm/brcmfmac43455-sdio.clm_blob .
-reboot
+# 添加kernel源
+curl -o jerryxiao-keyring-20190410-1-any.pkg.tar.xz https://archlinux.jerryxiao.cc/any/jerryxiao-keyring-20190410-1-any.pkg.tar.xz
+pacman -U jerryxiao-keyring-20190410-1-any.pkg.tar.xz
+echo '[jerryxiao]
+Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
+pacman -Syu
+
+# Wifi 蓝牙 固件
+pacman -S firmware-phicomm-n1
+
+# 主机名, 语言, 时间同步
+hostnamectl set-hostname xxxx
+echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
+locale-gen
+localectl set-locale en_US.utf8
+timedatectl set-timezone Asia/Shanghai
+timedatectl set-ntp true
+
+# 查询 当前cpu频率
+cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
+
+# 设备信息
+lscpu
+lsusb
+lsblk
 ```
+
+### 如何获取 uboot env
+
+- 配置文件
+
+```bash
+echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
+```
+- 打印 uboot env
+
+```bash
+fw_printenv 
+```
+
 
 # 在N1上用archlinux编译主线kernel
 
