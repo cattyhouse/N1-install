@@ -64,6 +64,16 @@ pacman -U linux-phicomm-n1-*
 curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
 bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C /mnt
 ```
+bsdtar 某些版本可能会提示以下error, 这个不影响使用, 可以忽略.
+
+````
+bsdtar: Ignoring malformed pax extended attribute
+bsdtar: Ignoring malformed pax extended attribute
+bsdtar: Ignoring malformed pax extended attribute
+bsdtar: Ignoring malformed pax extended attribute
+bsdtar: Error exit delayed from previous errors.
+
+````
 
 - 安装 kernel (宿主是其他 arm64 系统, 比如armbian)
 
