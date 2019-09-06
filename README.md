@@ -115,13 +115,13 @@ pacman -S uboot-tools
 systemctl disable systemd-networkd
 systemctl disable systemd-resolved
 
-echo "
+echo '
 # <file system> <dir> <type> <options> <dump> <pass>
 # /dev/sda2
 UUID=注意!!!sda2的UUID	/         	ext4      	rw,relatime	0 1
 # /dev/sda1
 UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
-" > /etc/fstab
+' > /etc/fstab
 
 cd /tmp
 for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
@@ -139,8 +139,8 @@ pacman -U linux-phicomm-n1-*
     - 将上面的信息填入下面, 然后运行
 
 ```bash
-echo "bootargs=root=UUID=找到的sda2的UUID rootflags=data=ordered rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0
-ethaddr=生成的MAC地址" > /boot/uEnv.ini 
+echo 'bootargs=root=UUID=找到的sda2的UUID rootflags=data=ordered rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0
+ethaddr=生成的MAC地址' > /boot/uEnv.ini 
 ```
 
 - 设置uboot env脚本
@@ -148,7 +148,7 @@ ethaddr=生成的MAC地址" > /boot/uEnv.ini
 aml_autoscript.cmd
 
 ```bash
-echo "
+echo '
 setenv bootcmd "run start_autoscript; run storeboot;"
 setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; run start_mmc_autoscript;"
 setenv start_mmc_autoscript "if fatload mmc 1 1020000 s905_autoscript; then autoscr 1020000; fi;"
@@ -157,13 +157,13 @@ setenv upgrade_step "0"
 saveenv
 sleep 1
 reboot
-" > /boot/aml_autoscript.cmd
+' > /boot/aml_autoscript.cmd
 ```
 
 s905_autoscript.cmd
 
 ```bash
-echo "
+echo '
 setenv env_addr "0x10400000"
 setenv kernel_addr "0x11000000"
 setenv initrd_addr "0x13000000"
@@ -171,7 +171,7 @@ setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
 if fatload usb 0 ${kernel_addr} zImage; then if fatload usb 0 ${initrd_addr} uInitrd; then if fatload usb 0 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 0 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
 if fatload usb 1 ${kernel_addr} zImage; then if fatload usb 1 ${initrd_addr} uInitrd; then if fatload usb 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
 if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload mmc 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
-" > /boot/s905_autoscript.cmd
+' > /boot/s905_autoscript.cmd
 ```
 
 生成二进制文件
@@ -200,7 +200,7 @@ systemctl enable sshd
 **出于安全考虑, 建议启动N1后,删除这条,采用 `id_rsa` `ssh key` 登陆**
 
 ```bash
-echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ```
 
 - 设置ip
@@ -208,12 +208,12 @@ echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
 为了简单起见, 这里用了dhcp, N1获取的ip到底是什么, 需要去路由器上看, 或者ping内网网段的ip找出来.
 
 ```bash
-echo "
+echo '
 Description='A basic dhcp ethernet connection'
 Interface=eth0
 Connection=ethernet
 IP=dhcp
-" > /etc/netctl/eth0-dhcp
+' > /etc/netctl/eth0-dhcp
 
 netctl enable eth0-dhcp
 ```
@@ -272,7 +272,7 @@ Device         Boot   Start      End  Sectors  Size Id Type
 - 配置文件
 
 ```bash
-echo "/dev/mmcblk1            0x27400000      0x10000" > /etc/fw_env.config
+echo '/dev/mmcblk1            0x27400000      0x10000' > /etc/fw_env.config
 ```
 - 打印 uboot env
 
@@ -342,7 +342,7 @@ cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
     sed -i "s/TEXT_OFFSET := 0x00080000/TEXT_OFFSET := 0x01080000/g" arch/arm64/Makefile
     sed -i "s/#error TEXT_OFFSET must be less than 2MB//g" arch/arm64/kernel/head.S
 
-    echo "// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+    echo '// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
     /*
     * Copyright (c) 2018 He Yangxuan
     */
@@ -419,7 +419,7 @@ cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
 
     &cvbs_vdac_port {
         status = "disabled";
-    };" > ./arch/arm64/boot/dts/amlogic/meson-gxl-s905d-phicomm-n1.dts
+    };' > ./arch/arm64/boot/dts/amlogic/meson-gxl-s905d-phicomm-n1.dts
     ````
 
     - 在 `make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install` 后面增加
