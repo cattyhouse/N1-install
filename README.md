@@ -52,8 +52,8 @@ arch-chroot /mnt
 
 ```bash
 cd /tmp
-for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
-pacman -U linux-phicomm-n1-lts-git*
+for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
+pacman -U linux-phicomm-n1-*
 ```
 
 - 安装 base (宿主是其他 arm64 系统, 比如armbian)
@@ -92,8 +92,8 @@ UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dma
 pacman-key --init
 pacman-key --populate archlinuxarm
 cd /tmp
-for item in $(curl -s https://archlinux.jerryxiao.cc/aarch64/ | grep linux-phicomm-n1-lts-git | cut -d \" -f2  | grep -v sig | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
-pacman -U linux-phicomm-n1-lts-git*
+for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
+pacman -U linux-phicomm-n1-*
 ```
 
 - 创建 uEnv.ini
