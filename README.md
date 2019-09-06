@@ -94,7 +94,7 @@ bsdtar: Error exit delayed from previous errors.
 
 注意: fstab 的 sda1 和 sda2 的 UUID 需要根据你的情况写入, 查询UUID用 `lsblk -f`
 
-````
+```bash
 cd /mnt
 mount -t proc /proc proc/
 mount --bind /sys sys/
@@ -118,15 +118,15 @@ systemctl disable systemd-resolved
 echo '
 # <file system> <dir> <type> <options> <dump> <pass>
 # /dev/sda2
-UUID=注意!!!sda2的UUID  /       ext4 rw,relatime 0 1
+UUID=注意!!!sda2的UUID / ext4 rw,relatime 0 1
 # /dev/sda1
-UUID=注意!!!sda1的UUID  /boot   vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro 0 2
+UUID=注意!!!sda1的UUID /boot vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro 0 2
 ' > /etc/fstab
 
 cd /tmp
 for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
 pacman -U linux-phicomm-n1-*
-````
+```
 
  **以下章节所有宿主都需要**
 
