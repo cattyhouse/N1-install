@@ -105,11 +105,15 @@ chroot /mnt /bin/bash
 source /etc/profile
 source ~/.bashrc
 export PS1="(chroot) $PS1"
+pacman-key --init
+pacman-key --populate archlinuxarm
+pacman -Syy
+# mkimage命令需要安装 uboot-tools
+pacman -S uboot-tools
 # 因为 archlinuxarm 官方的这个base默认启动了这两个服务配置网络, 我们后面用的是netctl的方式, 所以必须disable这两个服务
 systemctl disable systemd-networkd
 systemctl disable systemd-resolved
-# mkimage命令需要安装 uboot-tools
-pacman -S uboot-tools
+
 echo "
 # <file system> <dir> <type> <options> <dump> <pass>
 # /dev/sda2
@@ -117,9 +121,6 @@ UUID=注意!!!sda2的UUID	/         	ext4      	rw,relatime	0 1
 # /dev/sda1
 UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
 " > /etc/fstab
-
-pacman-key --init
-pacman-key --populate archlinuxarm
 
 cd /tmp
 for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
