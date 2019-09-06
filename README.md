@@ -118,9 +118,9 @@ systemctl disable systemd-resolved
 echo '
 # <file system> <dir> <type> <options> <dump> <pass>
 # /dev/sda2
-UUID=注意!!!sda2的UUID	/         	ext4      	rw,relatime	0 1
+UUID=注意!!!sda2的UUID  /       ext4 rw,relatime 0 1
 # /dev/sda1
-UUID=注意!!!sda1的UUID      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
+UUID=注意!!!sda1的UUID  /boot   vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro 0 2
 ' > /etc/fstab
 
 cd /tmp
