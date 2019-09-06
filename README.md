@@ -39,7 +39,7 @@ mount /dev/sda1 /mnt/boot
 
 ### 安装 archlinux 到U盘
 
-- 安装 base (宿主是archlinux arm64系统)
+- 安装 base (宿主是archlinux arm64系统), 宿主为其他系统的忽略此章节
 
 ```bash
 pacman -S arch-install-scripts
@@ -48,7 +48,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
 ```
 
-- 安装 kernel (宿主是archlinux arm64系统)
+- 安装 kernel (宿主是archlinux arm64系统), 宿主为其他系统的忽略此章节
 
 ```bash
 cd /tmp
