@@ -286,7 +286,7 @@ Device         Boot   Start      End  Sectors  Size Id Type
 
 ### 方法二: 克隆安装
 
-- U盘启动N1, 先按照 方法一 里面的格式给mmc分区
+- U盘启动N1, 先按照 方法一 里面的格式给mmc分区, **并格式化**.
 
 - 挂载 mmc 分区
 
