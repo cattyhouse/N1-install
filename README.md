@@ -64,7 +64,7 @@ pacman -U linux-phicomm-n1-*
 
 ````
 默认安装了的软件包 openssh,haveged
-默认安装了linux内核, 后面我们在安装N1的内核的时候, 会自动卸载这个内核.
+默认安装了通用的linux内核, 并不适合N1, 后面我们在安装N1的内核的时候, 会自动取代这个内核.
 root的默认密码是root, 后面可以自行设置密码
 包含一个alarm的普通用户, 不需要可以运行 userdel alarm 删除掉
 sshd默认启动
