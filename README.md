@@ -239,6 +239,8 @@ umount -vR /mnt
 
 ## MMC安装
 
+### 方法一: 全新安装
+
 MMC的安装与U盘过程一模一样, 但有几点区别:
 
 - MMC的设备名是 `/dev/mmcblk1`, 分区必须严格按照下面的格式, 注意 `Start` `End`, 否则变砖:
@@ -264,6 +266,37 @@ Device         Boot   Start      End  Sectors  Size Id Type
 - /etc/fstab 确认再确认!!! 尤其是 UUID
 
 - 安装到MMC后, 必须拔掉U盘才可以从MMC启动, 因为U盘的启动优先级更高
+
+### 方法二: 克隆安装
+
+- U盘启动N1, 先按照 方法一 里面的格式给mmc分区
+
+- 挂载 mmc 分区
+
+```bash
+mount /dev/mmcblk1p2 /mnt
+mkdir -p /mnt/boot
+mount /dev/mmcblk1p1 /mnt/boot
+```
+- 用rsync克隆U盘的内容到 mmc 分区, 完成后, mmc的内容与U盘一模一样
+
+```bash
+rsync -rlptDAPv -og -X --delete -h --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
+```
+
+- 修改相关文件的UUID
+
+注意, UUID修改后, 如果再运行上面的rsync命令, mmc的这两个文件会被rsync恢复为U盘的对应文件, 这也是rsync的魅力所在, 100%克隆.
+
+```bash
+lsblk -f # 获取 mmcblk1p1 和 mmcblk1p2 的 UUID, 并记住
+vim /mnt/boot/uEnv.ini #将里面的UUID更换成 /dev/mmcblk1p2 的UUID
+vim /mnt/etc/fstab # 修改注释里面的sda1 为 mmcblk1p1, 并更换为对应的UUID, 修改注释里面的sda2 为 mmcblk1p2, 并更换为对应的UUID.
+# 卸载mmc
+cd ~
+umount -vR /mnt
+```
+- 拔掉U盘, 断电重启.
 
 ## 其他
 
