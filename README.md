@@ -56,7 +56,7 @@ for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-
 pacman -U linux-phicomm-n1-*
 ```
 
-- 安装 base (宿主是其他 arm64 系统, 比如armbian)
+- 安装 base (宿主是其他 arm64 系统, 比如armbian) 宿主为archlinux的忽略此章节
 
 采用archlinuxarm [官方做好的base](https://archlinuxarm.org/platforms/armv8/generic), 留意它的一些说明以及注意事项, 后面提到的很多操作这个base已经做好了, 一定要完整阅读它的说明:
 
@@ -87,7 +87,7 @@ bsdtar: Error exit delayed from previous errors.
 
 ````
 
-- 安装 kernel (宿主是其他 arm64 系统, 比如armbian)
+- 安装 kernel (宿主是其他 arm64 系统, 比如armbian) 宿主为archlinux的忽略此章节
 
 注意: fstab 的 sda1 和 sda2 的 UUID 需要根据你的情况写入, 查询UUID用 `lsblk -f`
 
