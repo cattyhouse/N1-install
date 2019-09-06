@@ -195,7 +195,7 @@ systemctl enable haveged
 systemctl enable sshd
 ```
 
-- 临时允许root密码登陆 
+- 临时允许ssh密码登陆root账户
 
 **出于安全考虑, 建议启动N1后,删除这条,采用 `id_rsa` `ssh key` 登陆**
 
