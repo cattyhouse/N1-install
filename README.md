@@ -46,6 +46,7 @@ pacman -S arch-install-scripts
 pacstrap /mnt base
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
+pacman -Syy
 pacman -S uboot-tools
 ```
 
