@@ -259,7 +259,7 @@ Device         Boot   Start      End  Sectors  Size Id Type
 
 - uEnv.ini 填入 `/dev/mmcblk1p2` 的 UUID
 
-- `/boot/` 不需要 `aml_autoscript` 和 `aml_autoscript.cmd`
+- `/boot/` 分区的 `aml_autoscript` 和 `aml_autoscript.cmd` 在MMC成功启动后, 可以移除
 
 - /etc/fstab 确认再确认!!! 尤其是 UUID
 
