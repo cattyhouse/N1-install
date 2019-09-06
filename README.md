@@ -235,15 +235,34 @@ umount -vR /mnt
 
 - 启动 N1 的前提是已经刷过机
 - 刷机教程不再赘述
-- 启动成功后, `aml_autoscript` 以及 `aml_autoscript.cmd` 可以从 `/boot` 移除, 其余不要动
+- 启动成功后, `aml_autoscript` 以及 `aml_autoscript.cmd` 从 `/boot` 移除, 其余不要动
 
 ## MMC安装
+
+### 准备工作, uboot env 设置 
+
+- 配置文件
+
+```bash
+echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
+```
+- 确保可以打印 uboot env
+
+```bash
+fw_printenv 
+```
+- 设置 uboot env 确保可以从mmc启动
+
+```bash
+fw_setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; run start_mmc_autoscript;"
+fw_setenv start_mmc_autoscript "if fatload mmc 1 1020000 s905_autoscript; then autoscr 1020000; fi;"
+```
 
 ### 方法一: 全新安装
 
 MMC的安装与U盘过程一模一样, 但有几点区别:
 
-- MMC的设备名是 `/dev/mmcblk1`, 分区必须严格按照下面的格式, 注意 `Start` `End`, 否则变砖:
+- MMC的设备名是 `/dev/mmcblk1`, 分区必须严格按照下面的格式, 注意 `Start` `End`, 否则变砖别找我. 
 
 ````
 Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
@@ -259,11 +278,9 @@ Device         Boot   Start      End  Sectors  Size Id Type
 
 ````
 
-- uEnv.ini 填入 `/dev/mmcblk1p2` 的 UUID
+- /boot/uEnv.ini 填入 `/dev/mmcblk1p2` 的 UUID
 
-- `/boot/` 分区的 `aml_autoscript` 和 `aml_autoscript.cmd` 在MMC成功启动后, 可以移除
-
-- /etc/fstab 确认再确认!!! 尤其是 UUID
+- /etc/fstab 填入mmc的UUID, 确认再确认.
 
 - 安装到MMC后, 必须拔掉U盘才可以从MMC启动, 因为U盘的启动优先级更高
 
@@ -297,36 +314,6 @@ cd ~
 umount -vR /mnt
 ```
 - 拔掉U盘, 断电重启.
-
-## 其他
-
-### 在 archlinux下面操作 `uboot env`
-
-- 配置文件
-
-```bash
-echo '/dev/mmcblk1            0x27400000      0x10000' > /etc/fw_env.config
-```
-- 打印 uboot env
-
-```bash
-fw_printenv 
-```
-
-- 设置 uboot env ( !!! 慎用 )
-
-```bash
-fw_setenv
-```
-
-### 如果 MMC 启动失败
-
-从U盘启动, 运行
-
-```bash
-fw_setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; run start_mmc_autoscript;"
-fw_setenv start_mmc_autoscript "if fatload mmc 1 1020000 s905_autoscript; then autoscr 1020000; fi;"
-```
 
 ### 关于 Wi-Fi 和 蓝牙, 在 5.2.x mainline kernel上似乎完美
 
