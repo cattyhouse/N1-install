@@ -153,7 +153,7 @@ setenv bootcmd "run start_autoscript; run storeboot;"
 setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; run start_mmc_autoscript;"
 setenv start_mmc_autoscript "if fatload mmc 1 1020000 s905_autoscript; then autoscr 1020000; fi;"
 setenv start_usb_autoscript "if fatload usb 0 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 1 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 2 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 3 1020000 s905_autoscript; then autoscr 1020000; fi;"
-setenv upgrade_step "0"
+setenv upgrade_step "2"
 saveenv
 sleep 1
 reboot
@@ -298,7 +298,7 @@ mount /dev/mmcblk1p1 /mnt/boot
 - 用rsync克隆U盘的内容到 mmc 分区, 完成后, mmc的内容与U盘一模一样
 
 ```bash
-rsync -rlptDAPv -og -X --delete -h --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
+rsync -avPhHAX --numeric-ids --one-file-system --delete --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
 ```
 
 - 修改相关文件的UUID
