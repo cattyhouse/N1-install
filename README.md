@@ -308,8 +308,8 @@ cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
     sed -i "s/TEXT_OFFSET := 0x00080000/TEXT_OFFSET := 0x01080000/g" arch/arm64/Makefile
     sed -i "s/#error TEXT_OFFSET must be less than 2MB//g" arch/arm64/kernel/head.S
 
-    cat << EOF > ./arch/arm64/boot/dts/amlogic/meson-gxl-s905d-phicomm-n1.dts
-    // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+    
+    echo "// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
     /*
     * Copyright (c) 2018 He Yangxuan
     */
@@ -386,8 +386,7 @@ cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
 
     &cvbs_vdac_port {
         status = "disabled";
-    };
-    EOF
+    };" > ./arch/arm64/boot/dts/amlogic/meson-gxl-s905d-phicomm-n1.dts
     ````
 
     - 在 `make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install` 后面增加
