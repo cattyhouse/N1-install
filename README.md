@@ -73,7 +73,7 @@ systemd-networkd 默认启动, 我们需要disable掉这个服务
 systemd-resolved 默认启动, 我们需要disable掉这个服务, 然后手动编辑/etc/resolv.conf的DNS
 systemd-timesyncd 时间同步服务默认启动.这个不需要做什么修改
 ````
-下载内核并解压
+下载base并解压
 
 ```bash
 curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
