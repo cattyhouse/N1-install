@@ -309,7 +309,7 @@ Device         Boot   Start      End  Sectors  Size Id Type
 
 ### 方法二: 克隆安装
 
-- U盘启动N1, 先按照 方法一 里面的格式给mmc分区
+- 用前面做好的archlinux的U盘启动N1, 先按照 “方法一” 里面的格式给mmc分区
 
 - 格式化分区
 
