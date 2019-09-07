@@ -150,7 +150,7 @@ chroot /tmp/alarm /bin/bash
 source /etc/profile
 source ~/.bashrc
 export PS1="(chroot) $PS1"
-# 此时 archlinuxarm的环境已经准备好, 可以跳转到 “(宿主是archlinux arm64系统), 宿主为其他系统的忽略此章节” 直接对mmc进行操作.
+# 此时 archlinuxarm的环境已经准备好, 可以跳转到 “MMC安装” 以及 “(宿主是archlinux arm64系统), 宿主为其他系统的忽略此章节” 直接对mmc进行操作.
 ```
 
  **以下章节所有宿主都需要**
@@ -268,11 +268,6 @@ passwd root
 exit
 umount -vR /mnt
 ```
-
-### 用 archlinux 的U盘启动 N1
-
-- 启动 N1 的前提是已经刷过机
-- 刷机教程不再赘述
 
 ## MMC安装
 
