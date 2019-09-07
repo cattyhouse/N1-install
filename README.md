@@ -128,6 +128,31 @@ for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-
 pacman -U linux-phicomm-n1-*
 ```
 
+- 黑科技, chroot到archlinuxarm直接安装到mmc **(宿主是其他 arm64 系统, 比如armbian), 宿主为archlinux的忽略此章节**
+
+受到jerry的启发, 此为黑科技, 原理就是: 先用armbian的U盘启动N1, 然后将archlinuxarm的base解压到内存中, 然后chroot到archlinuxarm的base, 然后就得到一个archlinux的操作环境,就可以对mmc操作, 直接将archlinux安装到mmc, 步骤:
+
+```bash
+cd ~ 
+curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
+# 改变/tmp的大小为1.5G, 能容纳解压后的archlinuxarm base, N1的可用内存为1.8G, 所以1.5G的/tmp不会造成问题
+mount -o remount,size=1.5G,noatime /tmp
+mkdir -p /tmp/alarm
+bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C /tmp/alarm
+cd /tmp/alarm
+mount -t proc /proc proc/
+mount --bind /sys sys/
+mount --bind /dev dev/
+mount --bind /run run/
+rm -f etc/resolv.conf
+cp /etc/resolv.conf etc/resolv.conf
+chroot /mnt /bin/bash
+source /etc/profile
+source ~/.bashrc
+export PS1="(chroot) $PS1"
+# 此时 archlinuxarm的环境已经准备好, 可以跳转到 “(宿主是archlinux arm64系统), 宿主为其他系统的忽略此章节” 直接对mmc进行操作.
+```
+
  **以下章节所有宿主都需要**
 
 - 创建 uEnv.ini
