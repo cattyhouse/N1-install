@@ -136,7 +136,7 @@ pacman -U linux-phicomm-n1-*
 cd ~ 
 curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
 # 改变/tmp的大小为1.5G, 能容纳解压后的archlinuxarm base, N1的可用内存为1.8G, 所以1.5G的/tmp不会造成问题
-mount -o remount,size=1.5G,noatime /tmp
+mount -o remount,size=1500M,noatime /tmp
 mkdir -p /tmp/alarm
 bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C /tmp/alarm
 cd /tmp/alarm
