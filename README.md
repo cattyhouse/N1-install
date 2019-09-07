@@ -350,8 +350,8 @@ halt
 
 ```bash
 # 添加kernel源
-curl -o jerryxiao-keyring-20190410-1-any.pkg.tar.xz https://archlinux.jerryxiao.cc/any/jerryxiao-keyring-20190410-1-any.pkg.tar.xz
-pacman -U jerryxiao-keyring-20190410-1-any.pkg.tar.xz
+for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
+pacman -U jerryxiao-keyring-*.pkg.tar.xz
 echo '[jerryxiao]
 Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
 pacman -Syu
