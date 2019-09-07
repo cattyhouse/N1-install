@@ -255,7 +255,17 @@ umount -vR /mnt
 
 MMC的安装与U盘过程一模一样, 但有几点区别:
 
-- MMC的设备名是 `/dev/mmcblk1`, 分区必须严格按照下面的格式, 注意 `Start` `End`, 否则变砖别找我. 
+- MMC的设备名是 `/dev/mmcblk1`, 分区必须严格按照下面的格式, 注意 `Start` `End`,这样分区的目的是为了避免写入数据到uboot所在的block导致系统变砖
+
+````
+fdisk /dev/mmcblk1
+o 创建空白dos分区表
+n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
+t 修改类型, 输入 c 
+n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
+w 保存分区表.
+````
+结果如下
 
 ````
 Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
