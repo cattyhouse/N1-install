@@ -2,142 +2,119 @@
 
 ## 制作 `archlinux USB` 启动盘
 
-以下操作需要在ARM64系统下面进行, ARCHLINUX, ARMBIAN 或者 RASPBIAN 也行... 只要是 ARM64. 
+以下操作需要在arm64系统下面进行, 比如archlinux, armbian, raspbian 等等. x86下面也是有可能的, 需要用到 systemd-nspawn 来启动一个archlinux arm64 的系统.
 
-### 准备USB盘
+### 准备USB盘或者MMC
 
-- 寻找u盘设备路径
+- 寻找设备路径
 
 ```bash
-lsblk -f
+lsblk
 ```
 
-- 分区
+- 对于安装到U盘, 分区和格式化以及挂载
 
 ```bash
-fdisk /dev/sda
+fdisk /dev/sda 
+
+# 不一定叫做sda, 需要您仔细确认
+# o 创建空白的dos分区表
+# n 创建新分区, 选primary,容量512M
+# t 输入 c, 设置 type 为 W95 FAT32 (LBA)
+# n 创建新分区, 选primary,容量为剩余所有
+# 按 w 保存
 ```
-        按o创建空白的dos分区表
-        分区1, 512M, type c
-        分区2, 余下所有, type 83
-        按 w 保存
-
-- 格式化
 
 ```bash
-mkfs.vfat /dev/sda1
+mkfs.vfat /dev/sda1 # mkfs.vfat 需要 dosfstools 这个包
 mkfs.ext4 /dev/sda2
-```
-
-- 挂载
-
-```bash
 mount /dev/sda2 /mnt
 mkdir -p /mnt/boot
 mount /dev/sda1 /mnt/boot
 ```
 
-### 安装 archlinux 到U盘
+- 对于安装到MMC来说, 分区和格式化以及挂载
 
-- 安装 base **(宿主是archlinux arm64系统), 宿主为其他系统的忽略此章节**
+MMC的设备名是 `/dev/mmcblk1`.
+
+分区必须严格按照下面的格式.
+
+注意 `Start` `End`.
+
+这样分区的目的是为了避免写入数据到uboot所在的block导致系统变砖.
+
+````
+fdisk /dev/mmcblk1
+
+o 创建空白dos分区表
+n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
+t 修改类型, 输入 c 
+n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
+w 保存分区表.
+````
+结果如下
+
+````
+Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xa502f7df
+
+Device         Boot   Start      End  Sectors  Size Id Type
+/dev/mmcblk1p1       221184  1269760  1048577  512M  c W95 FAT32 (LBA)
+/dev/mmcblk1p2      1400832 15269887 13869056  6.6G 83 Linux
+
+````
 
 ```bash
-pacman -S arch-install-scripts
+mkfs.vfat /dev/mmcblk1p1 # mkfs.vfat 需要 dosfstools 这个包
+mkfs.ext4 /dev/mmcblk1p2
+mount /dev/mmcblk1p2 /mnt
+mkdir -p /mnt/boot
+mount /dev/mmcblk1p1 /mnt/boot
+```
+
+### 安装 archlinux
+
+- 宿主是archlinux系统,
+
+```bash
+# 安装 base 
+
+pacman -Syu arch-install-scripts uboot-tools dosfstools
 pacstrap /mnt base
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
-pacman -Syy
-pacman -S uboot-tools
+
+# 安装 kernel
+
+for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
+
+pacman -U jerryxiao-keyring-*.pkg.tar.xz
+
+echo '[jerryxiao]
+Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
+
+pacman -Syu linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1 
 ```
 
-- 安装 kernel **(宿主是archlinux arm64系统), 宿主为其他系统的忽略此章节**
 
-```bash
-cd /tmp
-for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
-pacman -U linux-phicomm-n1-*
-```
+- 宿主是其他 arm64 系统, 比如armbian,raspbian. 
 
-- 安装 base **(宿主是其他 arm64 系统, 比如armbian), 宿主为archlinux的忽略此章节**
+受到jerry的启发, 先启动进入armbian, 然后将archlinuxarm的base解压到随便一个文件夹中, 然后chroot到archlinuxarm的base, 然后就得到一个archlinux的操作环境, 就可以跳转到 -- **宿主是archlinux系统** -- 继续安装.
 
-采用archlinuxarm [官方做好的base](https://archlinuxarm.org/platforms/armv8/generic), 留意它的一些说明以及注意事项, 后面提到的很多操作这个base已经做好了, 一定要完整阅读它的说明:
+如果你有一个Rpi, 安装的是raspbian, 这种方式只能先安装arch到U盘, 然后启动N1
 
-````
-默认安装了的软件包 openssh,haveged
-默认安装了通用的linux内核, 并不适合N1, 后面我们在安装N1的内核的时候, 会自动取代这个内核.
-root的默认密码是root, 后面可以自行设置密码
-包含一个alarm的普通用户, 不需要可以运行 userdel alarm 删除掉
-sshd默认启动
-haveged 默认启动
-systemd-networkd 默认启动, 我们需要disable掉这个服务
-systemd-resolved 默认启动, 我们需要disable掉这个服务, 然后手动编辑/etc/resolv.conf的DNS
-systemd-timesyncd 时间同步服务默认启动.这个不需要做什么修改
-````
-下载base并解压
-
-```bash
-curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C /mnt
-```
-bsdtar 某些版本可能会提示以下error, 这个不影响使用, 可以忽略.
-
-````
-bsdtar: Ignoring malformed pax extended attribute
-bsdtar: Ignoring malformed pax extended attribute
-bsdtar: Ignoring malformed pax extended attribute
-bsdtar: Ignoring malformed pax extended attribute
-bsdtar: Error exit delayed from previous errors.
-
-````
-
-- 安装 kernel **(宿主是其他 arm64 系统, 比如armbian), 宿主为archlinux的忽略此章节**
-
-注意: fstab 的 sda1 和 sda2 的 UUID 需要根据你的情况写入, 查询UUID用 `lsblk -f`
-
-```bash
-cd /mnt
-mount -t proc /proc proc/
-mount --bind /sys sys/
-mount --bind /dev dev/
-mount --bind /run run/
-rm -f etc/resolv.conf
-cp /etc/resolv.conf etc/resolv.conf
-chroot /mnt /bin/bash
-source /etc/profile
-source ~/.bashrc
-export PS1="(chroot) $PS1"
-pacman-key --init
-pacman-key --populate archlinuxarm
-pacman -Syy
-# mkimage命令需要安装 uboot-tools
-pacman -S uboot-tools
-# 因为 archlinuxarm 官方的这个base默认启动了这两个服务配置网络, 我们后面用的是netctl的方式, 所以必须disable这两个服务
-systemctl disable systemd-networkd
-systemctl disable systemd-resolved
-
-echo '
-# <file system> <dir> <type> <options> <dump> <pass>
-# /dev/sda2
-UUID=注意!!!sda2的UUID / ext4 rw,relatime 0 1
-# /dev/sda1
-UUID=注意!!!sda1的UUID /boot vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro 0 2
-' > /etc/fstab
-
-cd /tmp
-for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
-pacman -U linux-phicomm-n1-*
-```
-
-- 黑科技, chroot到archlinuxarm直接安装到mmc **(宿主是其他 arm64 系统, 比如armbian), 宿主为archlinux的忽略此章节**
-
-受到jerry的启发, 此为黑科技, 原理就是: 先用armbian的U盘启动N1, 然后将archlinuxarm的base解压到随便一个文件夹中, 然后chroot到archlinuxarm的base, 然后就得到一个archlinux的操作环境,就可以对mmc操作, 直接将archlinux安装到mmc, 步骤:
+如果你是制作的armbian的N1启动U盘, 则可以安装到第二个U盘或者直接安装到MMC.
 
 ```bash
 cd ~ 
 curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
 mkdir ~/alarm
 bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C alarm
-mount --bind alarm alarm
+mount --bind alarm alarm # 因为 alarm 不是一个挂载点, 所以需要自己 mount 自己, 否则后面会出错.
 cd alarm
 mount -t proc /proc proc
 mount --make-rslave --rbind /sys sys
@@ -149,22 +126,18 @@ chroot ~/alarm /bin/bash
 source /etc/profile
 source ~/.bashrc
 export PS1="(chroot) $PS1"
-# 此时 archlinuxarm的环境已经准备好, 可以跳转到 “MMC安装” 以及 “(宿主是archlinux arm64系统), 宿主为其他系统的忽略此章节” 直接对mmc进行操作.
+
+# 此时 archlinuxarm的环境已经准备好, 可以跳转到 -- "宿主是archlinux系统".
 ```
 
- **以下章节所有宿主都需要**
+**以下章节所有宿主都需要**
 
 - 创建 uEnv.ini
-    
-    - `lsblk -f` 找到 `/dev/sda2` 的 `UUID`
-
-    - 生成MAC地址: `dd if=/dev/urandom bs=1024 count=1 2>/dev/null|md5sum|sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\)\(..\).*$/\1:\2:\3:\4:\5:\6/'`
-
-    - 将上面的信息填入下面, 然后运行
 
 ```bash
-echo 'bootargs=root=UUID=找到的sda2的UUID rootflags=data=ordered rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0
-ethaddr=生成的MAC地址' > /boot/uEnv.ini 
+# `lsblk -f` 找到 `sda2或者mmcblk1p2` 的 `UUID`
+echo 'dtb_name=/dtb.img
+bootargs=root=UUID=找到的root分区的UUID rootflags=data=writeback rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0' > /boot/uEnv.ini 
 ```
 
 - 设置uboot env脚本
@@ -172,12 +145,13 @@ ethaddr=生成的MAC地址' > /boot/uEnv.ini
 aml_autoscript.cmd
 
 ```bash
-echo 'setenv bootcmd "run start_autoscript; run storeboot;"
-setenv start_autoscript "if usb start ; then run start_usb_autoscript; fi; if mmcinfo; then run start_mmc_autoscript; fi; run start_emmc_autoscript;"
-setenv start_emmc_autoscript "if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;"
-setenv start_mmc_autoscript "if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;"
-setenv start_usb_autoscript "if fatload usb 0 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 1 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 2 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb 3 1020000 s905_autoscript; then autoscr 1020000; fi;"
-setenv upgrade_step "2"
+echo 'defenv
+setenv bootcmd 'run start_autoscript; run storeboot'
+setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
+setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
+setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
+setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done'
+setenv upgrade_step 2
 saveenv
 sleep 1
 reboot' > /boot/aml_autoscript.cmd
@@ -186,25 +160,31 @@ reboot' > /boot/aml_autoscript.cmd
 s905_autoscript.cmd
 
 ```bash
-echo 'setenv env_addr "0x10400000"
-setenv kernel_addr "0x11000000"
-setenv initrd_addr "0x13000000"
+echo 'if fatload mmc 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
+if fatload usb 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
+setenv env_addr 0x10400000
+setenv kernel_addr 0x11000000
+setenv initrd_addr 0x13000000
 setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
-if fatload usb 0 ${kernel_addr} zImage; then if fatload usb 0 ${initrd_addr} uInitrd; then if fatload usb 0 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 0 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
-if fatload usb 1 ${kernel_addr} zImage; then if fatload usb 1 ${initrd_addr} uInitrd; then if fatload usb 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
-if fatload mmc 0 ${kernel_addr} zImage; then if fatload mmc 0 ${initrd_addr} uInitrd; then if fatload mmc 0 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload mmc 0 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;' > /boot/s905_autoscript.cmd
+setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
+setenv try_boot_start 'if fatload ${devtype} ${devnum} ${kernel_addr} zImage; then if fatload ${devtype} ${devnum} ${initrd_addr} uInitrd; then fatload ${devtype} ${devnum} ${env_addr} uEnv.ini && env import -t ${env_addr} ${filesize} && run addmac; fatload ${devtype} ${devnum} ${dtb_mem_addr} ${dtb_name} && run boot_start; fi; fi;'
+setenv devtype mmc
+setenv devnum 0
+run try_boot_start
+setenv devtype usb
+for devnum in 0 1 2 3 ; do run try_boot_start ; done' > /boot/s905_autoscript.cmd
 ```
 
 emmc_autoscript.cmd
 
 ```bash
-echo 'setenv env_addr "0x10400000"
-setenv kernel_addr "0x11000000"
-setenv initrd_addr "0x13000000"
+echo 'setenv env_addr 0x10400000
+setenv kernel_addr 0x11000000
+setenv initrd_addr 0x13000000
+setenv dtb_mem_addr 0x1000000
 setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
-if fatload usb 0 ${kernel_addr} zImage; then if fatload usb 0 ${initrd_addr} uInitrd; then if fatload usb 0 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 0 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
-if fatload usb 1 ${kernel_addr} zImage; then if fatload usb 1 ${initrd_addr} uInitrd; then if fatload usb 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload usb 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;
-if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize};fi; if fatload mmc 1 ${dtb_mem_addr} dtb.img; then run boot_start; else store dtb read ${dtb_mem_addr}; run boot_start;fi;fi;fi;' > /boot/emmc_autoscript.cmd
+setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
+if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize}; run addmac; fi; if fatload mmc 1 ${dtb_mem_addr} ${dtb_name}; then run boot_start;fi;fi;fi;' > /boot/emmc_autoscript.cmd
 ```
 
 生成二进制文件
@@ -216,27 +196,26 @@ cd /boot
 /usr/bin/mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
 # 说明: 
 # uboot env 默认的参数为 
-# start_autoscript=if usb start ; then run start_usb_autoscript; fi; if mmcinfo; then run start_mmc_autoscript; fi; run start_emmc_autoscript;
-# 而 start_mmc_autoscript=if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi; 是不能启动mmc的, 因为N1的mmc为mmc 1, 所以会继续运行 start_emmc_autoscript
+# start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
+# 而 start_mmc_autoscript=if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi; 是用来启动安卓的, 因为N1的 mmc为mmc 1, 所以会继续运行 start_emmc_autoscript
 # 而 start_emmc_autoscript=if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi; 它需要 emmc_autoscript 这个文件.
-# 所以在N1上, s905_autoscript用于启动U盘, emmc_autoscript 用于启动 mmc. aml_autoscript 用于首次启动N1的时候的初始化(一般情况下不需要, 因为里面的内容是uboot env 默认的配置, 制作这个是以防万一)
+# 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在uboot执行update的时候运行 (adb shell reboot update 之后)
 
 ```
 
 - 安装必要的软件并开机启动
 
 ```bash
-pacman -S haveged
+pacman -S haveged openssh
 systemctl enable haveged
-pacman -S openssh
 systemctl enable sshd
 ```
 
 - 临时允许ssh密码登陆root账户
 
-**出于安全考虑, 建议启动N1后,删除这条,采用 `id_rsa` `ssh key` 登陆**
-
 ```bash
+# 出于安全考虑, 建议启动N1后,删除这条,采用 `id_rsa` `ssh key` 登陆
+
 echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ```
 
@@ -268,63 +247,11 @@ exit
 umount -vR /mnt
 ```
 
-## MMC安装
+## MMC安装之克隆安装
 
-### 方法一: 全新安装
+- 用前面做好的archlinux的U盘启动N1, 给MMC分区并格式化
 
-MMC的安装与U盘过程一模一样, 但有几点区别:
-
-- MMC的设备名是 `/dev/mmcblk1`, 分区必须严格按照下面的格式, 注意 `Start` `End`,这样分区的目的是为了避免写入数据到uboot所在的block导致系统变砖
-
-````
-fdisk /dev/mmcblk1
-o 创建空白dos分区表
-n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
-t 修改类型, 输入 c 
-n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
-w 保存分区表.
-````
-结果如下
-
-````
-Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
-Units: sectors of 1 * 512 = 512 bytes
-Sector size (logical/physical): 512 bytes / 512 bytes
-I/O size (minimum/optimal): 512 bytes / 512 bytes
-Disklabel type: dos
-Disk identifier: 0xa502f7df
-
-Device         Boot   Start      End  Sectors  Size Id Type
-/dev/mmcblk1p1       221184  1269760  1048577  512M  c W95 FAT32 (LBA)
-/dev/mmcblk1p2      1400832 15269887 13869056  6.6G 83 Linux
-
-````
-
-- /boot/uEnv.ini 填入 `/dev/mmcblk1p2` 的 UUID
-
-- /etc/fstab 填入mmc的UUID, 确认再确认.
-
-- 安装到MMC后, 必须拔掉U盘才可以从MMC启动, 因为U盘的启动优先级更高
-
-### 方法二: 克隆安装
-
-- 用前面做好的archlinux的U盘启动N1, 先按照 “方法一” 里面的格式给mmc分区
-
-- 格式化分区
-
-```bash
-mkfs.vfat /dev/mmcblk1p1
-mkfs.ext4 /dev/mmcblk1p2
-```
-
-- 挂载 mmc 分区
-
-```bash
-mount /dev/mmcblk1p2 /mnt
-mkdir -p /mnt/boot
-mount /dev/mmcblk1p1 /mnt/boot
-```
-- 用rsync克隆U盘的内容到 mmc 分区, 完成后, mmc的内容与U盘一模一样
+- 用rsync克隆U盘的内容到 MMC 分区, 完成后, mmc的内容与U盘一模一样
 
 ```bash
 rsync -avPhHAX --numeric-ids --one-file-system --delete --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
@@ -348,20 +275,10 @@ halt
 ## Post Install
 
 ```bash
-# 添加kernel源
-for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
-pacman -U jerryxiao-keyring-*.pkg.tar.xz
-echo '[jerryxiao]
-Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
-pacman -Syu
-
-# Wifi 蓝牙 固件
-pacman -S firmware-phicomm-n1
-
 # 主机名, 语言, 时间同步
 hostnamectl set-hostname xxxx
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
-locale-gen
+locale-gen # 可能需要蛮久
 localectl set-locale en_US.utf8
 timedatectl set-timezone Asia/Shanghai
 timedatectl set-ntp true
