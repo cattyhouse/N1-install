@@ -81,7 +81,7 @@ mount /dev/mmcblk1p1 /mnt/boot
 ```bash
 # 安装 base 
 
-pacman -Syu arch-install-scripts Uboot-tools dosfstools
+pacman -Syu arch-install-scripts uboot-tools dosfstools
 pacstrap /mnt base
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
