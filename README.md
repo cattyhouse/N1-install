@@ -135,15 +135,16 @@ pacman -U linux-phicomm-n1-*
 ```bash
 cd ~ 
 curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-mkdir -p alarm
+mkdir ~/alarm
 bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C alarm
+mount --bind alarm alarm
 cd alarm
-mount -t proc /proc proc/
-mount --bind /sys sys/
-mount --bind /dev dev/
-mount --bind /run run/
+mount -t proc /proc proc
+mount --make-rslave --rbind /sys sys
+mount --make-rslave --rbind /dev dev
+mount --make-rslave --rbind /run run
 rm -f etc/resolv.conf
-cp /etc/resolv.conf etc/resolv.conf
+cp /etc/resolv.conf etc/
 chroot ~/alarm /bin/bash
 source /etc/profile
 source ~/.bashrc
