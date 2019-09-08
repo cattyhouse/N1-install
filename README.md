@@ -130,16 +130,14 @@ pacman -U linux-phicomm-n1-*
 
 - 黑科技, chroot到archlinuxarm直接安装到mmc **(宿主是其他 arm64 系统, 比如armbian), 宿主为archlinux的忽略此章节**
 
-受到jerry的启发, 此为黑科技, 原理就是: 先用armbian的U盘启动N1, 然后将archlinuxarm的base解压到内存中, 然后chroot到archlinuxarm的base, 然后就得到一个archlinux的操作环境,就可以对mmc操作, 直接将archlinux安装到mmc, 步骤:
+受到jerry的启发, 此为黑科技, 原理就是: 先用armbian的U盘启动N1, 然后将archlinuxarm的base解压到随便一个文件夹中, 然后chroot到archlinuxarm的base, 然后就得到一个archlinux的操作环境,就可以对mmc操作, 直接将archlinux安装到mmc, 步骤:
 
 ```bash
 cd ~ 
 curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-# 改变/tmp的大小为1.5G, 能容纳解压后的archlinuxarm base, N1的可用内存为1.8G, 所以1.5G的/tmp不会造成问题
-mount -o remount,size=1500M,noatime /tmp
-mkdir -p /tmp/alarm
-bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C /tmp/alarm
-cd /tmp/alarm
+mkdir -p alarm
+bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C alarm
+cd alarm
 mount -t proc /proc proc/
 mount --bind /sys sys/
 mount --bind /dev dev/
