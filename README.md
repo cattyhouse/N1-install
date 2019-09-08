@@ -147,7 +147,7 @@ ethaddr=生成的MAC地址' > /boot/uEnv.ini
 
 **前方有巨坑, 注意** : 以下代码里面有变量, 所以 cat EOF 必须用单引号, 而且所有的内容都是单引号, 否则会被 shell 和 Uboot 展开, 造成各种问题. 
 
-Credit: aml_autoscript.cmd aml_autoscript.zip s905_autoscript.cmd  emmc_autoscript.cmd 均来自大神 150balbes 的 (armbian)[https://disk.yandex.ru/d/srrtn6kpnsKz2].
+Credit: aml_autoscript.cmd aml_autoscript.zip s905_autoscript.cmd  emmc_autoscript.cmd 均来自大神 150balbes 的 [armbian](https://disk.yandex.ru/d/srrtn6kpnsKz2).
 
 aml_autoscript.cmd 和 aml_autoscript.zip
 
