@@ -1,10 +1,8 @@
 # N1 安装 Archlinux
 
-## 制作 `archlinux USB` 启动盘
+以下操作需要在arm64系统下面进行, 比如 archlinux, armbian, raspbian 等等. x86下面也是有可能的, 需要用到 systemd-nspawn 来启动一个 archlinux arm64 的系统.
 
-以下操作需要在arm64系统下面进行, 比如archlinux, armbian, raspbian 等等. x86下面也是有可能的, 需要用到 systemd-nspawn 来启动一个archlinux arm64 的系统.
-
-### 准备USB盘或者MMC
+## 准备 USB 或者 MMC
 
 - 寻找设备路径
 
@@ -41,7 +39,7 @@ MMC的设备名是 `/dev/mmcblk1`.
 
 注意 `Start` `End`.
 
-这样分区的目的是为了避免写入数据到uboot所在的block导致系统变砖.
+这样分区的目的是为了避免写入数据到Uboot所在的block导致系统变砖.
 
 ````
 fdisk /dev/mmcblk1
@@ -76,14 +74,14 @@ mkdir -p /mnt/boot
 mount /dev/mmcblk1p1 /mnt/boot
 ```
 
-### 安装 archlinux
+## 安装 archlinux
 
-- 宿主是archlinux系统,
+- 宿主是 archlinux 系统, 如果是别的系统, 继续往下看
 
 ```bash
 # 安装 base 
 
-pacman -Syu arch-install-scripts uboot-tools dosfstools
+pacman -Syu arch-install-scripts Uboot-tools dosfstools
 pacstrap /mnt base
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
@@ -101,13 +99,13 @@ pacman -Syu linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1
 ```
 
 
-- 宿主是其他 arm64 系统, 比如armbian,raspbian. 
+- 宿主是其他 arm64 系统, 比如 armbian,raspbian 等
 
-受到jerry的启发, 先启动进入armbian, 然后将archlinuxarm的base解压到随便一个文件夹中, 然后chroot到archlinuxarm的base, 然后就得到一个archlinux的操作环境, 就可以跳转到 -- **宿主是archlinux系统** -- 继续安装.
+    受到 jerry 的启发, 先启动进入 armbian, 然后将 archlinuxarm 的 base 解压到随便一个文件夹中, 然后 chroot 到archlinuxarm 的 base, 就得到一个 archlinux 的操作环境, 就可以跳转到 -- **宿主是 archlinux 系统** -- 继续安装.
 
-如果你有一个Rpi, 安装的是raspbian, 这种方式只能先安装arch到U盘, 然后启动N1
+    如果你有一个Rpi, 安装的是raspbian, 这种方式只能先安装arch到U盘, 然后启动N1
 
-如果你是制作的armbian的N1启动U盘, 则可以安装到第二个U盘或者直接安装到MMC.
+    如果你是制作的 armbian 的N1启动U盘, 则可以安装到第二个U盘或者直接安装到MMC.
 
 ```bash
 cd ~ 
@@ -127,20 +125,20 @@ source /etc/profile
 source ~/.bashrc
 export PS1="(chroot) $PS1"
 
-# 此时 archlinuxarm的环境已经准备好, 可以跳转到 -- "宿主是archlinux系统".
+# 此时 archlinuxarm 的环境已经准备好, 可以跳转到 -- "宿主是 archlinux 系统".
 ```
 
-**以下章节所有宿主都需要**
+## 设置 Uboot
 
 - 创建 uEnv.ini
 
 ```bash
-# `lsblk -f` 找到 `sda2或者mmcblk1p2` 的 `UUID`
+# `lsblk -f` 找到 `sda2 或者 mmcblk1p2` 的 `UUID`
 echo 'dtb_name=/dtb.img
 bootargs=root=UUID=找到的root分区的UUID rootflags=data=writeback rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0' > /boot/uEnv.ini 
 ```
 
-- 设置uboot env脚本
+- 设置Uboot env脚本
 
 aml_autoscript.cmd
 
@@ -195,13 +193,14 @@ cd /boot
 /usr/bin/mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
 /usr/bin/mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
 # 说明: 
-# uboot env 默认的参数为 
+# Uboot env 默认的参数为 
 # start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
 # 而 start_mmc_autoscript=if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi; 是用来启动安卓的, 因为N1的 mmc为mmc 1, 所以会继续运行 start_emmc_autoscript
 # 而 start_emmc_autoscript=if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi; 它需要 emmc_autoscript 这个文件.
-# 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在uboot执行update的时候运行 (adb shell reboot update 之后)
+# 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在Uboot执行update的时候运行 (adb shell reboot update 之后)
 
 ```
+## 收尾工作
 
 - 安装必要的软件并开机启动
 
@@ -247,7 +246,7 @@ exit
 umount -vR /mnt
 ```
 
-## MMC安装之克隆安装
+# 题外话: MMC安装之克隆安装
 
 - 用前面做好的archlinux的U盘启动N1, 给MMC分区并格式化
 
@@ -272,7 +271,7 @@ halt
 ```
 - 拔掉U盘, 拔插电源重启
 
-## Post Install
+# 初次启动的一些设置
 
 ```bash
 # 主机名, 语言, 时间同步
@@ -292,21 +291,21 @@ lsusb
 lsblk
 ```
 
-### 如何获取 uboot env
+# 如何获取 Uboot env
 
 - 配置文件
 
 ```bash
 echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
 ```
-- 打印 uboot env
+- 打印 Uboot env
 
 ```bash
 fw_printenv 
 ```
 
 
-# 在N1上用archlinux编译主线kernel
+# 在 N1上用 archlinux 编译主线 kernel
 
 - 感谢
 
