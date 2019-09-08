@@ -144,7 +144,7 @@ mount --bind /dev dev/
 mount --bind /run run/
 rm -f etc/resolv.conf
 cp /etc/resolv.conf etc/resolv.conf
-chroot /tmp/alarm /bin/bash
+chroot ~/alarm /bin/bash
 source /etc/profile
 source ~/.bashrc
 export PS1="(chroot) $PS1"
