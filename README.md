@@ -145,49 +145,57 @@ ethaddr=生成的MAC地址' > /boot/uEnv.ini
 
 - 设置Uboot env脚本
 
+以下代码里面有变量, 所以 EOF 必须用单引号, 而且所有的内容都是单引号, 否则会被 shell 和 Uboot 展开, 造成各种问题 
+
 aml_autoscript.cmd
 
 ```bash
-echo 'defenv
-setenv bootcmd "run start_autoscript; run storeboot"
-setenv start_autoscript "if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript"
-setenv start_emmc_autoscript "if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;"
-setenv start_mmc_autoscript "if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;"
-setenv start_usb_autoscript "for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done"
+cat <<'EOF' > /boot/aml_autoscript.cmd
+defenv
+setenv bootcmd 'run start_autoscript; run storeboot'
+setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
+setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
+setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
+setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done'
 setenv upgrade_step 2
 saveenv
 sleep 1
-reboot' > /boot/aml_autoscript.cmd
+reboot
+EOF
 ```
 
 s905_autoscript.cmd
 
 ```bash
-echo 'if fatload mmc 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
+cat <<'EOF' > /boot/s905_autoscript.cmd
+if fatload mmc 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
 if fatload usb 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
 setenv env_addr 0x10400000
 setenv kernel_addr 0x11000000
 setenv initrd_addr 0x13000000
 setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
-setenv addmac "if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi"
-setenv try_boot_start "if fatload ${devtype} ${devnum} ${kernel_addr} zImage; then if fatload ${devtype} ${devnum} ${initrd_addr} uInitrd; then fatload ${devtype} ${devnum} ${env_addr} uEnv.ini && env import -t ${env_addr} ${filesize} && run addmac; fatload ${devtype} ${devnum} ${dtb_mem_addr} ${dtb_name} && run boot_start; fi; fi;"
+setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
+setenv try_boot_start 'if fatload ${devtype} ${devnum} ${kernel_addr} zImage; then if fatload ${devtype} ${devnum} ${initrd_addr} uInitrd; then fatload ${devtype} ${devnum} ${env_addr} uEnv.ini && env import -t ${env_addr} ${filesize} && run addmac; fatload ${devtype} ${devnum} ${dtb_mem_addr} ${dtb_name} && run boot_start; fi; fi;'
 setenv devtype mmc
 setenv devnum 0
 run try_boot_start
 setenv devtype usb
-for devnum in 0 1 2 3 ; do run try_boot_start ; done' > /boot/s905_autoscript.cmd
+for devnum in 0 1 2 3 ; do run try_boot_start ; done
+EOF
 ```
 
 emmc_autoscript.cmd
 
 ```bash
-echo 'setenv env_addr 0x10400000
+cat <<'EOF' > /boot/emmc_autoscript.cmd
+setenv env_addr 0x10400000
 setenv kernel_addr 0x11000000
 setenv initrd_addr 0x13000000
 setenv dtb_mem_addr 0x1000000
 setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
-setenv addmac "if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi"
-if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize}; run addmac; fi; if fatload mmc 1 ${dtb_mem_addr} ${dtb_name}; then run boot_start;fi;fi;fi;' > /boot/emmc_autoscript.cmd
+setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
+if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize}; run addmac; fi; if fatload mmc 1 ${dtb_mem_addr} ${dtb_name}; then run boot_start;fi;fi;fi;
+EOF
 ```
 
 生成二进制文件
