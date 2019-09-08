@@ -134,8 +134,13 @@ export PS1="(chroot) $PS1"
 
 ```bash
 # `lsblk -f` 找到 `sda2 或者 mmcblk1p2` 的 `UUID`
+# 生成 eth0 的 MAC 地址
+echo $(uuidgen) | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/'
+# 将生成的信息填入下面, 创建 uEnv.ini
 echo 'dtb_name=/dtb.img
-bootargs=root=UUID=找到的root分区的UUID rootflags=data=writeback rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0' > /boot/uEnv.ini 
+bootargs=root=UUID=找到的root分区的UUID rootflags=data=writeback rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0
+ethaddr=生成的MAC地址' > /boot/uEnv.ini
+
 ```
 
 - 设置Uboot env脚本
@@ -189,9 +194,9 @@ if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uIn
 
 ```bash
 cd /boot
-/usr/bin/mkimage -C none -A arm -T script -d aml_autoscript.cmd aml_autoscript
-/usr/bin/mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
-/usr/bin/mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
+mkimage -C none -A arm -T script -d aml_autoscript.cmd aml_autoscript
+mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
+mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
 # 说明: 
 # Uboot env 默认的参数为 
 # start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
