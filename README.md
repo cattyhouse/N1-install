@@ -253,7 +253,7 @@ umount -vR /mnt
 - 用rsync克隆U盘的内容到 MMC 分区, 完成后, mmc的内容与U盘一模一样
 
 ```bash
-rsync -avPhHAX --numeric-ids --one-file-system --delete --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
+rsync -avPhHAX --numeric-ids  --delete --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
 ```
 
 - 修改相关文件的UUID
