@@ -145,11 +145,14 @@ ethaddr=生成的MAC地址' > /boot/uEnv.ini
 
 - 设置Uboot env脚本
 
-以下代码里面有变量, 所以 EOF 必须用单引号, 而且所有的内容都是单引号, 否则会被 shell 和 Uboot 展开, 造成各种问题 
+**前方有巨坑, 注意** : 以下代码里面有变量, 所以 cat EOF 必须用单引号, 而且所有的内容都是单引号, 否则会被 shell 和 Uboot 展开, 造成各种问题. 
 
 aml_autoscript.cmd
+aml_autoscript.zip
 
 ```bash
+curl -OL https://raw.githubusercontent.com/cattyhouse/N1-install/master/aml_autoscript.zip && mv aml_autoscript.zip /boot/
+
 cat <<'EOF' > /boot/aml_autoscript.cmd
 defenv
 setenv bootcmd 'run start_autoscript; run storeboot'
