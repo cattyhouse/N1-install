@@ -265,7 +265,7 @@ umount -vR /mnt
 
 # 题外话: MMC安装之克隆安装
 
-- 用前面做好的archlinux的U盘启动N1, 给MMC分区并格式化
+- 用前面做好的archlinux的U盘启动N1, 给MMC[分区,格式化,挂载](https://github.com/cattyhouse/N1-install#准备-usb-或者-mmc)
 
 - 用rsync克隆U盘的内容到 MMC 分区, 完成后, mmc的内容与U盘一模一样
 
