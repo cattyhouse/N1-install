@@ -394,11 +394,11 @@ cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
 
     - 在 `cat "${srcdir}/config" > ./.config ` 后面插入
     
-    ````
+    ```bash
     # Amlogic meson SoC TEXT_OFFSET
     sed -i "s/TEXT_OFFSET := 0x00080000/TEXT_OFFSET := 0x01080000/g" arch/arm64/Makefile
     sed -i "s/#error TEXT_OFFSET must be less than 2MB//g" arch/arm64/kernel/head.S
-
+    # dts fix
     echo '// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
     /*
     * Copyright (c) 2018 He Yangxuan
@@ -477,14 +477,14 @@ cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
     &cvbs_vdac_port {
         status = "disabled";
     };' > ./arch/arm64/boot/dts/amlogic/meson-gxl-s905d-phicomm-n1.dts
-    ````
+    ```
 
     - 在 `make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install` 后面增加
 
-    ````
+    ```bash
     # cp meson-gxl-s905d-phicomm-n1.dtb as dtb.img, for s905_autoscript to load
     cp "${pkgdir}/boot/dtbs/amlogic/meson-gxl-s905d-phicomm-n1.dtb" "${pkgdir}/boot/dtb.img" 
-    ````
+    ```
 
     - 修改 `pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-chromebook")` 为 `pkgname=("${pkgbase}" "${pkgbase}-headers")` 避免编译chromebook的kernel
 
