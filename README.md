@@ -490,25 +490,25 @@ cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
 
 - 编译 kernel (使用distcc的情况下大约3小时~4小时)
 
-````
+```bash
 cd ~/n1/linux-aarch64
 makepkg -s
-````
+```
 
 - 安装 kernel
 
-````
+```bash
 pacman -U *.pkg.tar.xz
-````
+```
 
 ## 自动 (建议使用的方法)
 
-````
+```bash
 git clone https://github.com/archlinux-jerry/pkgbuilds
 cd pkgbuilds/linux-phicomm-n1
 makepkg -s
 pacman -U *.pkg.tar.xz
-````
+```
 
 ## 二进制 (懒人版)
 
