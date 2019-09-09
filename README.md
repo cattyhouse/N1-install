@@ -297,6 +297,9 @@ echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen # 可能需要蛮久
 localectl set-locale en_US.utf8
 timedatectl set-timezone Asia/Shanghai
+# 使用阿里云的时间服务器
+echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf
+# 启动 systemd-timesyncd 服务, 因为 N1 没有 RTC 时钟
 timedatectl set-ntp true
 
 # 查询 当前cpu频率
@@ -306,6 +309,48 @@ cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
 lscpu
 lsusb
 lsblk
+
+# 提高网络性能
+
+cat <<'EOF' > /etc/sysctl.conf
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.ip_forward = 1
+net.core.somaxconn = 2048
+net.core.rmem_default = 851968
+net.core.rmem_max = 851968
+net.core.wmem_default = 851968
+net.core.wmem_max = 851968
+net.core.optmem_max = 81920
+net.ipv4.tcp_rmem = 8192  262144 12582912
+net.ipv4.tcp_wmem = 8192  32768  8388608
+net.ipv4.ip_local_port_range = 20000 60999
+net.ipv4.tcp_max_syn_backlog = 2000
+net.core.netdev_max_backlog = 2048
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.lo.send_redirects = 0
+net.ipv4.conf.eth0.send_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+EOF
+sysctl -p
+
+# 提高文件性能
+cat <<'EOF' >> /etc/systemd/system.conf
+DefaultLimitNOFILE=2097152:2097152
+DefaultLimitNPROC=2097152:2097152
+EOF
+
+cat <<'EOF' >> /etc/security/limits.conf
+*         hard    nofile      500000
+*         soft    nofile      500000
+root      hard    nofile      500000
+root      soft    nofile      500000
+*         hard    nproc      500000
+*         soft    nproc      500000
+root      hard    nproc      500000
+root      soft    nproc      500000
+EOF
+
 ```
 
 # 如何获取 Uboot env
