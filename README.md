@@ -74,55 +74,54 @@
 
 - 宿主是 archlinux 系统, 如果是别的系统, 继续往下看
 
-```bash
-# 安装 base 
+    ```bash
+    # 安装 base 
 
-pacman -Syu arch-install-scripts uboot-tools dosfstools
-pacstrap /mnt base
-genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt
+    pacman -Syu arch-install-scripts uboot-tools dosfstools
+    pacstrap /mnt base
+    genfstab -U /mnt >> /mnt/etc/fstab
+    arch-chroot /mnt
 
-# 安装 kernel
+    # 安装 kernel
 
-for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
+    for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
 
-pacman -U jerryxiao-keyring-*.pkg.tar.xz
+    pacman -U jerryxiao-keyring-*.pkg.tar.xz
 
-echo '[jerryxiao]
-Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
+    echo '[jerryxiao]
+    Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
 
-pacman -Syu linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1 
-```
+    pacman -Syu linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1 
+    ```
 
 
 - 宿主是其他 arm64 系统, 比如 armbian,raspbian 等
+    > 受到 jerry 的启发, 先启动进入 armbian, 然后将 archlinuxarm 的 base 解压到随便一个文件夹中, 
+    > 然后 chroot 到archlinuxarm 的 base, 就得到一个 archlinux 的操作环境, 
+    > 就可以跳转到 -- **宿主是 archlinux 系统** -- 继续安装.
 
-    受到 jerry 的启发, 先启动进入 armbian, 然后将 archlinuxarm 的 base 解压到随便一个文件夹中, 然后 chroot 到archlinuxarm 的 base, 就得到一个 archlinux 的操作环境, 就可以跳转到 -- **宿主是 archlinux 系统** -- 继续安装.
+    > 如果你有一个Rpi, 安装的是raspbian, 这种方式只能先安装arch到U盘, 然后启动N1.
+    > 如果你是制作的 armbian 的N1启动U盘, 则可以安装到第二个U盘或者直接安装到MMC.
 
-    如果你有一个Rpi, 安装的是raspbian, 这种方式只能先安装arch到U盘, 然后启动N1
-
-    如果你是制作的 armbian 的N1启动U盘, 则可以安装到第二个U盘或者直接安装到MMC.
-
-```bash
-cd ~ 
-curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-mkdir ~/alarm
-bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C alarm
-mount --bind alarm alarm # 因为 alarm 不是一个挂载点, 所以需要自己 mount 自己, 否则后面会出错.
-cd alarm
-mount -t proc /proc proc
-mount --make-rslave --rbind /sys sys
-mount --make-rslave --rbind /dev dev
-mount --make-rslave --rbind /run run
-rm -f etc/resolv.conf
-cp /etc/resolv.conf etc/
-chroot ~/alarm /bin/bash
-source /etc/profile
-source ~/.bashrc
-export PS1="(chroot) $PS1"
-
-# 此时 archlinuxarm 的环境已经准备好, 可以跳转到 -- "宿主是 archlinux 系统".
-```
+    ```bash
+    cd ~ 
+    curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
+    mkdir ~/alarm
+    bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C alarm
+    mount --bind alarm alarm # 因为 alarm 不是一个挂载点, 所以需要自己 mount 自己, 否则后面会出错.
+    cd alarm
+    mount -t proc /proc proc
+    mount --make-rslave --rbind /sys sys
+    mount --make-rslave --rbind /dev dev
+    mount --make-rslave --rbind /run run
+    rm -f etc/resolv.conf
+    cp /etc/resolv.conf etc/
+    chroot ~/alarm /bin/bash
+    source /etc/profile
+    source ~/.bashrc
+    export PS1="(chroot) $PS1"
+    # 此时 archlinuxarm 的环境已经准备好, 可以跳转到 -- "宿主是 archlinux 系统".
+    ```
 
 ## 设置 Uboot
 
