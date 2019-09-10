@@ -32,43 +32,43 @@
 
 - 对于安装到MMC来说, 分区和格式化以及挂载
 
-> MMC的设备名是 `/dev/mmcblk1`.
-> 分区必须严格按照下面的格式.
-> 注意 `Start` `End`.
-> 这样分区的目的是为了避免写入数据到Uboot所在的block导致系统变砖.
+    > MMC的设备名是 `/dev/mmcblk1`.
+    > 分区必须严格按照下面的格式.
+    > 注意 `Start` `End`.
+    > 这样分区的目的是为了避免写入数据到Uboot所在的block导致系统变砖.
 
-````
-fdisk /dev/mmcblk1
+    ```bash
+    fdisk /dev/mmcblk1
 
-o 创建空白dos分区表
-n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
-t 修改类型, 输入 c 
-n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
-w 保存分区表.
-````
-结果如下
+    # o 创建空白dos分区表
+    # n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
+    # t 修改类型, 输入 c 
+    # n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
+    # w 保存分区表.
+    ```
+    > 结果如下
 
-````
-Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
-Units: sectors of 1 * 512 = 512 bytes
-Sector size (logical/physical): 512 bytes / 512 bytes
-I/O size (minimum/optimal): 512 bytes / 512 bytes
-Disklabel type: dos
-Disk identifier: 0xa502f7df
+    ````
+    Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
+    Units: sectors of 1 * 512 = 512 bytes
+    Sector size (logical/physical): 512 bytes / 512 bytes
+    I/O size (minimum/optimal): 512 bytes / 512 bytes
+    Disklabel type: dos
+    Disk identifier: 0xa502f7df
 
-Device         Boot   Start      End  Sectors  Size Id Type
-/dev/mmcblk1p1       221184  1269760  1048577  512M  c W95 FAT32 (LBA)
-/dev/mmcblk1p2      1400832 15269887 13869056  6.6G 83 Linux
+    Device         Boot   Start      End  Sectors  Size Id Type
+    /dev/mmcblk1p1       221184  1269760  1048577  512M  c W95 FAT32 (LBA)
+    /dev/mmcblk1p2      1400832 15269887 13869056  6.6G 83 Linux
 
-````
+    ````
 
-```bash
-mkfs.vfat /dev/mmcblk1p1 # mkfs.vfat 需要 dosfstools 这个包
-mkfs.ext4 /dev/mmcblk1p2
-mount /dev/mmcblk1p2 /mnt
-mkdir -p /mnt/boot
-mount /dev/mmcblk1p1 /mnt/boot
-```
+    ```bash
+    mkfs.vfat /dev/mmcblk1p1 # mkfs.vfat 需要 dosfstools 这个包
+    mkfs.ext4 /dev/mmcblk1p2
+    mount /dev/mmcblk1p2 /mnt
+    mkdir -p /mnt/boot
+    mount /dev/mmcblk1p1 /mnt/boot
+    ```
 
 ## 安装 archlinux
 
