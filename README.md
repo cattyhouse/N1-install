@@ -79,7 +79,7 @@
 
     ```bash
     # 安装 base 
-    pacman -Syu arch-install-scripts uboot-tools dosfstools
+    pacman -Sy arch-install-scripts uboot-tools dosfstools
     pacstrap /mnt base
     genfstab -U /mnt >> /mnt/etc/fstab
     arch-chroot /mnt
@@ -89,7 +89,7 @@
     pacman -U jerryxiao-keyring-*.pkg.tar.xz
     echo '[jerryxiao]
     Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
-    pacman -Syu linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1 
+    pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1 
     ```
 
 
