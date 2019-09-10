@@ -352,8 +352,9 @@ lsusb
 lsblk
 
 # 提高网络性能
-
-cat <<'EOF' > /etc/sysctl.conf
+# 注意 systemd 已经不再开机加载 /etc/sysctl.conf
+# 必须放到 /etc/sysctl.d/
+cat <<'EOF' > /etc/sysctl.d/sysctl.conf
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 net.ipv4.ip_forward = 1
