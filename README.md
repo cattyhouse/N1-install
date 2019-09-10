@@ -96,7 +96,7 @@
 - 宿主是其他 arm64 系统, 比如 armbian,raspbian 等
     > 受到 jerry 的启发, 先启动进入 armbian, 然后将 archlinuxarm 的 base 解压到随便一个文件夹中, 
     > 然后 chroot 到archlinuxarm 的 base, 就得到一个 archlinux 的操作环境, 
-    > 就可以跳转到 -- **宿主是 archlinux 系统** -- 继续安装.
+    > 就可以跳转到 **宿主是 archlinux 系统** 继续安装.
 
     > 如果你有一个Rpi, 安装的是raspbian, 这种方式只能先安装arch到U盘, 然后启动N1.
     > 如果你是制作的 armbian 的N1启动U盘, 则可以安装到第二个U盘或者直接安装到MMC.
