@@ -279,10 +279,7 @@
 
     ```bash
     # 生成配置文件
-    echo "Description=‘A basic dhcp ethernet connection’
-    Interface=eth0
-    Connection=ethernet
-    IP=dhcp" > /etc/netctl/eth0-dhcp
+    cp /etc/netctl/examples/ethernet-dhcp /etc/netctl/eth0-dhcp
 
     # 开机启动
     netctl enable eth0-dhcp
