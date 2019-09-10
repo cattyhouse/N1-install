@@ -139,7 +139,7 @@
 ## 设置 Uboot
 
 
-- 确保可以打印和写入Uboot env
+- 确保可以打印和写入Uboot env (uboot 环境变量)
 
     - 配置文件
 
@@ -148,13 +148,13 @@
         ```
     - 打印 Uboot env
 
-        ````
-        fw_printenv 
-        ````
+        ```bash
+        fw_printenv # 执行一下看是否可以成功输出 uboot env
+        ```
     - 写入 Uboot env
 
         ```bash
-        fw_setenv #慎用 
+        fw_setenv # 后面会用到, 现在不需要执行.
         ```
 
 - 创建 uEnv.ini
