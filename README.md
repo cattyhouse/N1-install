@@ -1,45 +1,41 @@
 # N1 安装 Archlinux
 
-以下操作需要在arm64系统下面进行, 比如 archlinux, armbian, raspbian 等等. x86下面也是有可能的, 需要用到 systemd-nspawn 来启动一个 archlinux arm64 的系统.
+> 以下操作需要在arm64系统下面进行, 比如 archlinux, armbian, raspbian 等等. 
+> x86下面也是有可能的, 需要用到 systemd-nspawn 来启动一个 archlinux arm64 的系统.
 
 ## 准备 USB 或者 MMC
 
 - 寻找设备路径
 
-```bash
-lsblk
-```
+        lsblk
 
 - 对于安装到U盘, 分区和格式化以及挂载
 
-```bash
-fdisk /dev/sda 
+    ```bash
+    fdisk /dev/sda 
 
-# 不一定叫做sda, 需要您仔细确认
-# o 创建空白的dos分区表
-# n 创建新分区, 选primary,容量512M
-# t 输入 c, 设置 type 为 W95 FAT32 (LBA)
-# n 创建新分区, 选primary,容量为剩余所有
-# 按 w 保存
-```
+    # 不一定叫做sda, 需要您仔细确认
+    # o 创建空白的dos分区表
+    # n 创建新分区, 选primary,容量512M
+    # t 输入 c, 设置 type 为 W95 FAT32 (LBA)
+    # n 创建新分区, 选primary,容量为剩余所有
+    # w 保存
+    ```
 
-```bash
-mkfs.vfat /dev/sda1 # mkfs.vfat 需要 dosfstools 这个包
-mkfs.ext4 /dev/sda2
-mount /dev/sda2 /mnt
-mkdir -p /mnt/boot
-mount /dev/sda1 /mnt/boot
-```
+    ```bash
+    mkfs.vfat /dev/sda1 # mkfs.vfat 需要 dosfstools 这个包
+    mkfs.ext4 /dev/sda2
+    mount /dev/sda2 /mnt
+    mkdir -p /mnt/boot
+    mount /dev/sda1 /mnt/boot
+    ```
 
 - 对于安装到MMC来说, 分区和格式化以及挂载
 
-MMC的设备名是 `/dev/mmcblk1`.
-
-分区必须严格按照下面的格式.
-
-注意 `Start` `End`.
-
-这样分区的目的是为了避免写入数据到Uboot所在的block导致系统变砖.
+> MMC的设备名是 `/dev/mmcblk1`.
+> 分区必须严格按照下面的格式.
+> 注意 `Start` `End`.
+> 这样分区的目的是为了避免写入数据到Uboot所在的block导致系统变砖.
 
 ````
 fdisk /dev/mmcblk1
