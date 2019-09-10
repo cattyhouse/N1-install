@@ -6,6 +6,14 @@
 ## 安装 base 和 kernel
 
 - **宿主是 archlinux 系统**, 如果是别的系统, 直接跳转到 **宿主是其他 arm64 系统**, 再回来.
+    
+    > 准备一下系统环境
+
+    ````
+    pacman-key --init
+    pacman-key --populate archlinuxarm
+    pacman -Sy arch-install-scripts uboot-tools dosfstools
+    ````
     > 分区, 格式化, 挂载
 
     - 寻找设备路径
@@ -78,9 +86,6 @@
 
     ```bash
     # 安装 base
-    pacman-key --init
-    pacman-key --populate archlinuxarm
-    pacman -Sy arch-install-scripts uboot-tools dosfstools
     pacstrap /mnt base
     genfstab -U /mnt >> /mnt/etc/fstab
     arch-chroot /mnt
