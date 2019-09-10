@@ -138,6 +138,25 @@
 
 ## 设置 Uboot
 
+
+- 确保可以打印和写入Uboot env
+
+    - 配置文件
+
+        ```bash
+        echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
+        ```
+    - 打印 Uboot env
+
+        ````
+        fw_printenv 
+        ````
+    - 写入 Uboot env
+
+        ```bash
+        fw_setenv #慎用 
+        ```
+
 - 创建 uEnv.ini
 
     ```bash
@@ -157,73 +176,85 @@
 
     > Credit: aml_autoscript.cmd aml_autoscript.zip s905_autoscript.cmd  emmc_autoscript.cmd 均来自大神 150balbes 的 [armbian](https://disk.yandex.ru/d/srrtn6kpnsKz2).
 
-    > aml_autoscript.cmd 和 aml_autoscript.zip
+    - aml_autoscript.cmd 和 aml_autoscript.zip
 
-    ```bash
-    curl -OL https://raw.githubusercontent.com/cattyhouse/N1-install/master/aml_autoscript.zip && mv aml_autoscript.zip /boot/
+        ```bash
+        curl -OL https://raw.githubusercontent.com/cattyhouse/N1-install/master/aml_autoscript.zip && mv aml_autoscript.zip /boot/
 
-    cat <<'EOF' > /boot/aml_autoscript.cmd
-    defenv
-    setenv bootcmd 'run start_autoscript; run storeboot'
-    setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
-    setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
-    setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
-    setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done'
-    setenv upgrade_step 2
-    saveenv
-    sleep 1
-    reboot
-    EOF
-    ```
+        cat <<'EOF' > /boot/aml_autoscript.cmd
+        defenv
+        setenv bootcmd 'run start_autoscript; run storeboot'
+        setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
+        setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
+        setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
+        setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done'
+        setenv upgrade_step 2
+        saveenv
+        sleep 1
+        reboot
+        EOF
+        ```
 
-    > s905_autoscript.cmd
+    - s905_autoscript.cmd
 
-    ```bash
-    cat <<'EOF' > /boot/s905_autoscript.cmd
-    if fatload mmc 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
-    if fatload usb 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
-    setenv env_addr 0x10400000
-    setenv kernel_addr 0x11000000
-    setenv initrd_addr 0x13000000
-    setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
-    setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
-    setenv try_boot_start 'if fatload ${devtype} ${devnum} ${kernel_addr} zImage; then if fatload ${devtype} ${devnum} ${initrd_addr} uInitrd; then fatload ${devtype} ${devnum} ${env_addr} uEnv.ini && env import -t ${env_addr} ${filesize} && run addmac; fatload ${devtype} ${devnum} ${dtb_mem_addr} ${dtb_name} && run boot_start; fi; fi;'
-    setenv devtype mmc
-    setenv devnum 0
-    run try_boot_start
-    setenv devtype usb
-    for devnum in 0 1 2 3 ; do run try_boot_start ; done
-    EOF
-    ```
+        ```bash
+        cat <<'EOF' > /boot/s905_autoscript.cmd
+        if fatload mmc 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
+        if fatload usb 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
+        setenv env_addr 0x10400000
+        setenv kernel_addr 0x11000000
+        setenv initrd_addr 0x13000000
+        setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
+        setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
+        setenv try_boot_start 'if fatload ${devtype} ${devnum} ${kernel_addr} zImage; then if fatload ${devtype} ${devnum} ${initrd_addr} uInitrd; then fatload ${devtype} ${devnum} ${env_addr} uEnv.ini && env import -t ${env_addr} ${filesize} && run addmac; fatload ${devtype} ${devnum} ${dtb_mem_addr} ${dtb_name} && run boot_start; fi; fi;'
+        setenv devtype mmc
+        setenv devnum 0
+        run try_boot_start
+        setenv devtype usb
+        for devnum in 0 1 2 3 ; do run try_boot_start ; done
+        EOF
+        ```
 
-    > emmc_autoscript.cmd
+    - emmc_autoscript.cmd
 
-    ```bash
-    cat <<'EOF' > /boot/emmc_autoscript.cmd
-    setenv env_addr 0x10400000
-    setenv kernel_addr 0x11000000
-    setenv initrd_addr 0x13000000
-    setenv dtb_mem_addr 0x1000000
-    setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
-    setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
-    if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize}; run addmac; fi; if fatload mmc 1 ${dtb_mem_addr} ${dtb_name}; then run boot_start;fi;fi;fi;
-    EOF
-    ```
+        ```bash
+        cat <<'EOF' > /boot/emmc_autoscript.cmd
+        setenv env_addr 0x10400000
+        setenv kernel_addr 0x11000000
+        setenv initrd_addr 0x13000000
+        setenv dtb_mem_addr 0x1000000
+        setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
+        setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
+        if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize}; run addmac; fi; if fatload mmc 1 ${dtb_mem_addr} ${dtb_name}; then run boot_start;fi;fi;fi;
+        EOF
+        ```
 
-    > 生成二进制文件
+    - 生成二进制文件
 
-    ```bash
-    cd /boot
-    mkimage -C none -A arm -T script -d aml_autoscript.cmd aml_autoscript
-    mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
-    mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
-    # 说明: 
-    # Uboot env 默认的参数为 
-    # start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
-    # 而 start_mmc_autoscript=if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi; 是用来启动安卓的, 因为N1的 mmc为mmc 1, 所以会继续运行 start_emmc_autoscript
-    # 而 start_emmc_autoscript=if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi; 它需要 emmc_autoscript 这个文件.
-    # 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在Uboot执行update的时候运行 (adb shell reboot update 之后)
-    ```
+        ```bash
+        cd /boot
+        mkimage -C none -A arm -T script -d aml_autoscript.cmd aml_autoscript
+        mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
+        mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
+        # 说明: 
+        # Uboot env 默认的参数为 
+        # start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
+        # 而 start_mmc_autoscript=if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi; 是用来启动安卓的, 因为N1的 mmc为mmc 1, 所以会继续运行 start_emmc_autoscript
+        # 而 start_emmc_autoscript=if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi; 它需要 emmc_autoscript 这个文件.
+        # 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在Uboot执行update的时候运行 (adb shell reboot update 之后)
+        ```
+
+    - 同步 aml_autoscript 的内容
+
+        > 上面提到过, aml_autoscript 的执行需要特殊环境, 此目的是确保当前的 uboot 环境就像是运行过 aml_autoscript 一样
+
+        ```bash
+        fw_setenv bootcmd 'run start_autoscript; run storeboot'
+        fw_setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
+        fw_setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
+        fw_setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
+        fw_setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done'
+        ```
 ## 收尾工作
 
 - 安装必要的软件并开机启动
@@ -359,19 +390,6 @@ root      hard    nproc      500000
 root      soft    nproc      500000
 EOF
 ```
-
-# 如何获取 Uboot env
-
-- 配置文件
-
-    ```bash
-    echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
-    ```
-- 打印 Uboot env
-
-    ````
-    fw_printenv 
-    ````
 
 # 在 N1上用 archlinux 编译主线 kernel
 
