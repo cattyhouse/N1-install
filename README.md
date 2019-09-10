@@ -47,7 +47,7 @@
 
         > 注意 **Start**, **End**
 
-        > 这样分区的目的是为了避免写入数据到Uboot所在的block导致系统变砖.
+        > 这样分区的目的是为了避免写入数据到uboot所在的block导致系统变砖.
 
         ```bash
         fdisk /dev/mmcblk1
@@ -136,22 +136,22 @@
     # 此时 archlinuxarm 的环境已经准备好, 可以跳转到 -- "宿主是 archlinux 系统".
     ```
 
-## 设置 Uboot
+## 设置 uboot
 
 
-- 确保可以打印和写入Uboot env (uboot 环境变量)
+- 确保可以打印和写入uboot env (uboot 环境变量)
 
-    - 配置文件
+    - 生成配置文件
 
         ```bash
         echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
         ```
-    - 打印 Uboot env
+    - 打印 uboot env
 
         ```bash
         fw_printenv # 执行一下看是否可以成功输出 uboot env
         ```
-    - 写入 Uboot env
+    - 写入 uboot env
 
         ```bash
         fw_setenv # 后面会用到, 现在不需要执行.
@@ -169,10 +169,10 @@
     ethaddr=生成的MAC地址' > /boot/uEnv.ini
     ```
 
-- 设置Uboot env脚本
+- 设置uboot env脚本
 
     > **前方有巨坑, 注意** : 以下代码里面有变量, 所以 cat EOF 必须用单引号, 
-    > 而且所有的内容都是单引号, 否则会被 shell 和 Uboot 展开, 造成各种问题. 
+    > 而且所有的内容都是单引号, 否则会被 shell 和 uboot 展开, 造成各种问题. 
 
     > Credit: aml_autoscript.cmd aml_autoscript.zip s905_autoscript.cmd  emmc_autoscript.cmd 均来自大神 150balbes 的 [armbian](https://disk.yandex.ru/d/srrtn6kpnsKz2).
 
@@ -237,11 +237,11 @@
         mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
         mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
         # 说明: 
-        # Uboot env 默认的参数为 
+        # uboot env 默认的参数为 
         # start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
         # 而 start_mmc_autoscript=if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi; 是用来启动安卓的, 因为N1的 mmc为mmc 1, 所以会继续运行 start_emmc_autoscript
         # 而 start_emmc_autoscript=if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi; 它需要 emmc_autoscript 这个文件.
-        # 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在Uboot执行update的时候运行 (adb shell reboot update 之后)
+        # 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在uboot执行update的时候运行 (adb shell reboot update 之后)
         ```
 
     - 同步 aml_autoscript 的内容
