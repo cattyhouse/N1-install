@@ -1,84 +1,85 @@
-# N1 安装 Archlinux
+# 安装 Archlinux
 
 > 以下操作需要在arm64系统下面进行, 比如 archlinux, armbian, raspbian 等等. 
 > x86下面也是有可能的, 需要用到 systemd-nspawn 来启动一个 archlinux arm64 的系统.
 
-## 准备 USB 或者 MMC
+## 安装 base 和 kernel
 
-- 寻找设备路径
-    ````
-    lsblk
-    ````
-- 对于安装到U盘, 分区和格式化以及挂载
+1. **宿主是 archlinux 系统**, 如果是别的系统, 继续往下看
+    > 分区, 格式化, 挂载
+
+    - 寻找设备路径
+        ````
+        lsblk
+        ````
+    - 对于安装到U盘, 分区和格式化以及挂载
+
+        ```bash
+        fdisk /dev/sda 
+
+        # 不一定叫做sda, 需要您仔细确认
+        # o 创建空白的dos分区表
+        # n 创建新分区, 选primary,容量512M
+        # t 输入 c, 设置 type 为 W95 FAT32 (LBA)
+        # n 创建新分区, 选primary,容量为剩余所有
+        # w 保存
+
+        mkfs.vfat /dev/sda1 # mkfs.vfat 需要 dosfstools 这个包
+        mkfs.ext4 /dev/sda2
+        mount /dev/sda2 /mnt
+        mkdir -p /mnt/boot
+        mount /dev/sda1 /mnt/boot
+        ```
+
+    - 对于安装到MMC来说, 分区和格式化以及挂载
+
+        > MMC的设备名是 **/dev/mmcblk1**
+
+        > 分区必须严格按照下面的格式
+
+        > 注意 **Start**, **End**
+
+        > 这样分区的目的是为了避免写入数据到Uboot所在的block导致系统变砖.
+
+        ```bash
+        fdisk /dev/mmcblk1
+
+        # o 创建空白dos分区表
+        # n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
+        # t 修改类型, 输入 c 
+        # n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
+        # w 保存分区表.
+        ```
+        > 分区正确的情况下 `fdisk -l /dev/mmcblk1` 结果如下
+
+        ````
+        Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
+        Units: sectors of 1 * 512 = 512 bytes
+        Sector size (logical/physical): 512 bytes / 512 bytes
+        I/O size (minimum/optimal): 512 bytes / 512 bytes
+        Disklabel type: dos
+        Disk identifier: 0xa502f7df
+
+        Device         Boot   Start      End  Sectors  Size Id Type
+        /dev/mmcblk1p1       221184  1269760  1048577  512M  c W95 FAT32 (LBA)
+        /dev/mmcblk1p2      1400832 15269887 13869056  6.6G 83 Linux
+
+        ````
+        > 格式化并挂载
+
+        ```bash
+        mkfs.vfat /dev/mmcblk1p1 # mkfs.vfat 需要 dosfstools 这个包
+        mkfs.ext4 /dev/mmcblk1p2
+        mount /dev/mmcblk1p2 /mnt
+        mkdir -p /mnt/boot
+        mount /dev/mmcblk1p1 /mnt/boot
+        ```
+    > 开始安装
 
     ```bash
-    fdisk /dev/sda 
-
-    # 不一定叫做sda, 需要您仔细确认
-    # o 创建空白的dos分区表
-    # n 创建新分区, 选primary,容量512M
-    # t 输入 c, 设置 type 为 W95 FAT32 (LBA)
-    # n 创建新分区, 选primary,容量为剩余所有
-    # w 保存
-    ```
-
-    ```bash
-    mkfs.vfat /dev/sda1 # mkfs.vfat 需要 dosfstools 这个包
-    mkfs.ext4 /dev/sda2
-    mount /dev/sda2 /mnt
-    mkdir -p /mnt/boot
-    mount /dev/sda1 /mnt/boot
-    ```
-
-- 对于安装到MMC来说, 分区和格式化以及挂载
-
-    > MMC的设备名是 **/dev/mmcblk1**,
-    > 分区必须严格按照下面的格式,
-    > 注意 **Start**, **End**.
-    > 这样分区的目的是为了避免写入数据到Uboot所在的block导致系统变砖.
-
-    > 创建分区
-
-    ```bash
-    fdisk /dev/mmcblk1
-
-    # o 创建空白dos分区表
-    # n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
-    # t 修改类型, 输入 c 
-    # n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
-    # w 保存分区表.
-    ```
-    > 分区正确的情况下 `fdisk -l /dev/mmcblk1` 结果如下
-
-    ````
-    Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
-    Units: sectors of 1 * 512 = 512 bytes
-    Sector size (logical/physical): 512 bytes / 512 bytes
-    I/O size (minimum/optimal): 512 bytes / 512 bytes
-    Disklabel type: dos
-    Disk identifier: 0xa502f7df
-
-    Device         Boot   Start      End  Sectors  Size Id Type
-    /dev/mmcblk1p1       221184  1269760  1048577  512M  c W95 FAT32 (LBA)
-    /dev/mmcblk1p2      1400832 15269887 13869056  6.6G 83 Linux
-
-    ````
-    > 格式化并挂载
-
-    ```bash
-    mkfs.vfat /dev/mmcblk1p1 # mkfs.vfat 需要 dosfstools 这个包
-    mkfs.ext4 /dev/mmcblk1p2
-    mount /dev/mmcblk1p2 /mnt
-    mkdir -p /mnt/boot
-    mount /dev/mmcblk1p1 /mnt/boot
-    ```
-
-## 安装 archlinux
-
-- 宿主是 archlinux 系统, 如果是别的系统, 继续往下看
-
-    ```bash
-    # 安装 base 
+    # 安装 base
+    pacman-key --init
+    pacman-key --populate archlinuxarm
     pacman -Sy arch-install-scripts uboot-tools dosfstools
     pacstrap /mnt base
     genfstab -U /mnt >> /mnt/etc/fstab
@@ -92,8 +93,7 @@
     pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1 
     ```
 
-
-- 宿主是其他 arm64 系统, 比如 armbian,raspbian 等
+- **宿主是其他 arm64 系统**, 比如 armbian,raspbian 等
     > 受到 jerry 的启发, 先启动进入 armbian, 然后将 archlinuxarm 的 base 解压到随便一个文件夹中, 
     > 然后 chroot 到archlinuxarm 的 base, 就得到一个 archlinux 的操作环境, 
     > 就可以跳转到 **宿主是 archlinux 系统** 继续安装.
@@ -128,8 +128,6 @@
     source /etc/profile
     source ~/.bashrc
     export PS1="(chroot) $PS1"
-    pacman-key --init
-    pacman-key --populate archlinuxarm
     # 此时 archlinuxarm 的环境已经准备好, 可以跳转到 -- "宿主是 archlinux 系统".
     ```
 
@@ -293,69 +291,69 @@
     ```
 - 拔掉U盘, 拔插电源重启
 
-    # 初次启动的一些设置
+# 初次启动的一些设置
 
-    ```bash
-    # 主机名, 语言, 时间同步
-    hostnamectl set-hostname xxxx
-    echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
-    locale-gen # 可能需要蛮久
-    localectl set-locale en_US.utf8
-    timedatectl set-timezone Asia/Shanghai
-    # 使用阿里云的时间服务器
-    echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf
-    # 启动 systemd-timesyncd 服务, 因为 N1 没有 RTC 时钟
-    timedatectl set-ntp true
+```bash
+# 主机名, 语言, 时间同步
+hostnamectl set-hostname xxxx
+echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
+locale-gen # 可能需要蛮久
+localectl set-locale en_US.utf8
+timedatectl set-timezone Asia/Shanghai
+# 使用阿里云的时间服务器
+echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf
+# 启动 systemd-timesyncd 服务, 因为 N1 没有 RTC 时钟
+timedatectl set-ntp true
 
-    # 查询 当前cpu频率
-    cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
+# 查询 当前cpu频率
+cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
 
-    # 设备信息
-    lscpu
-    lsusb
-    lsblk
+# 设备信息
+lscpu
+lsusb
+lsblk
 
-    # 提高网络性能
+# 提高网络性能
 
-    cat <<'EOF' > /etc/sysctl.conf
-    net.core.default_qdisc = fq
-    net.ipv4.tcp_congestion_control = bbr
-    net.ipv4.ip_forward = 1
-    net.core.somaxconn = 2048
-    net.core.rmem_default = 851968
-    net.core.rmem_max = 851968
-    net.core.wmem_default = 851968
-    net.core.wmem_max = 851968
-    net.core.optmem_max = 81920
-    net.ipv4.tcp_rmem = 8192  262144 12582912
-    net.ipv4.tcp_wmem = 8192  32768  8388608
-    net.ipv4.ip_local_port_range = 20000 60999
-    net.ipv4.tcp_max_syn_backlog = 2000
-    net.core.netdev_max_backlog = 2048
-    net.ipv4.conf.all.send_redirects = 0
-    net.ipv4.conf.lo.send_redirects = 0
-    net.ipv4.conf.eth0.send_redirects = 0
-    net.ipv4.conf.default.send_redirects = 0
-    EOF
-    sysctl -p
+cat <<'EOF' > /etc/sysctl.conf
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.ip_forward = 1
+net.core.somaxconn = 2048
+net.core.rmem_default = 851968
+net.core.rmem_max = 851968
+net.core.wmem_default = 851968
+net.core.wmem_max = 851968
+net.core.optmem_max = 81920
+net.ipv4.tcp_rmem = 8192  262144 12582912
+net.ipv4.tcp_wmem = 8192  32768  8388608
+net.ipv4.ip_local_port_range = 20000 60999
+net.ipv4.tcp_max_syn_backlog = 2000
+net.core.netdev_max_backlog = 2048
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.lo.send_redirects = 0
+net.ipv4.conf.eth0.send_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+EOF
+sysctl -p
 
-    # 提高文件性能
-    cat <<'EOF' >> /etc/systemd/system.conf
-    DefaultLimitNOFILE=2097152:2097152
-    DefaultLimitNPROC=2097152:2097152
-    EOF
+# 提高文件性能
+cat <<'EOF' >> /etc/systemd/system.conf
+DefaultLimitNOFILE=2097152:2097152
+DefaultLimitNPROC=2097152:2097152
+EOF
 
-    cat <<'EOF' >> /etc/security/limits.conf
-    *         hard    nofile      500000
-    *         soft    nofile      500000
-    root      hard    nofile      500000
-    root      soft    nofile      500000
-    *         hard    nproc      500000
-    *         soft    nproc      500000
-    root      hard    nproc      500000
-    root      soft    nproc      500000
-    EOF
-    ```
+cat <<'EOF' >> /etc/security/limits.conf
+*         hard    nofile      500000
+*         soft    nofile      500000
+root      hard    nofile      500000
+root      soft    nofile      500000
+*         hard    nproc      500000
+*         soft    nproc      500000
+root      hard    nproc      500000
+root      soft    nproc      500000
+EOF
+```
 
 # 如何获取 Uboot env
 
