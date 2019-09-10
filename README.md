@@ -369,7 +369,7 @@
 
 ## 手动 (不建议, 此处只是为了记录原理)
 
-- 下载archlinuxarm的linux-aarch64源代码
+- 下载 archlinuxarm 的 linux-aarch64 源代码
 
     ``` bash
     mkdir -p ~/n1
@@ -377,9 +377,9 @@
     cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
     ```
 
-- 修改 `~/n1/linux-aarch64/PKGBUILD`
+- 修改 *`~/n1/linux-aarch64/PKGBUILD`*
 
-    - 在 `cat "${srcdir}/config" > ./.config ` 后面插入
+    - 在 **`cat "${srcdir}/config" > ./.config`** 后面插入
     
         ```bash
         # Amlogic meson SoC TEXT_OFFSET
@@ -466,16 +466,18 @@
         };' > ./arch/arm64/boot/dts/amlogic/meson-gxl-s905d-phicomm-n1.dts
         ```
 
-    - 在 `make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install` 后面增加
+    - 在 **`make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install`** 后面增加
 
         ```bash
         # cp meson-gxl-s905d-phicomm-n1.dtb as dtb.img, for s905_autoscript to load
         cp "${pkgdir}/boot/dtbs/amlogic/meson-gxl-s905d-phicomm-n1.dtb" "${pkgdir}/boot/dtb.img" 
         ```
 
-    - 修改 `pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-chromebook")` 为 `pkgname=("${pkgbase}" "${pkgbase}-headers")` 避免编译chromebook的kernel
+    - 修改 *`pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-chromebook")`* 为 **`pkgname=("${pkgbase}" "${pkgbase}-headers")`** 避免编译chromebook的kernel
 
-- 编译 kernel (使用distcc的情况下大约3小时~4小时)
+- 编译 kernel 
+
+    > 使用distcc的情况下大约3小时~4小时
 
     ```bash
     cd ~/n1/linux-aarch64
