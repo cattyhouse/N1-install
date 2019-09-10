@@ -128,6 +128,8 @@
     source /etc/profile
     source ~/.bashrc
     export PS1="(chroot) $PS1"
+    pacman-key --init
+    pacman-key --populate archlinuxarm
     # 此时 archlinuxarm 的环境已经准备好, 可以跳转到 -- "宿主是 archlinux 系统".
     ```
 
