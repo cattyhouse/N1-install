@@ -100,6 +100,16 @@
 
     > 如果你有一个Rpi, 安装的是raspbian, 这种方式只能先安装arch到U盘, 然后启动N1.
     > 如果你是制作的 armbian 的N1启动U盘, 则可以安装到第二个U盘或者直接安装到MMC.
+    
+    > bsdtar 某些版本可能会提示以下error, 可以忽略.
+    
+    ````
+    bsdtar: Ignoring malformed pax extended attribute
+    bsdtar: Ignoring malformed pax extended attribute
+    bsdtar: Ignoring malformed pax extended attribute
+    bsdtar: Ignoring malformed pax extended attribute
+    bsdtar: Error exit delayed from previous errors.
+    ````
 
     ```bash
     cd ~ 
