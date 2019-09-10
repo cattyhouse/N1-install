@@ -114,8 +114,8 @@
     ```bash
     cd ~ 
     curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-    mkdir ~/alarm
-    bsdtar -xpf ~/ArchLinuxARM-aarch64-latest.tar.gz -C alarm
+    mkdir alarm
+    bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
     mount --bind alarm alarm # 因为 alarm 不是一个挂载点, 所以需要自己 mount 自己, 否则后面会出错.
     cd alarm
     mount -t proc /proc proc
