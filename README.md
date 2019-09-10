@@ -88,6 +88,7 @@
     # 安装 base
     pacstrap /mnt base
     genfstab -U /mnt >> /mnt/etc/fstab
+    # 检查下 /mnt/etc/fstab, 除了 "#" 开头的之外, 确保里面只有两行内容, 一行是挂载 "/" 另一行是挂载 "/boot", 其他的(比如/dev/zram*)删掉
     arch-chroot /mnt
 
     # 安装 kernel
