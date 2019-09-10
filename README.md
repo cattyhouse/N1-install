@@ -329,6 +329,12 @@
 # 初次启动的一些设置
 
 ```bash
+# 更新一下系统
+pacman -Syyuu
+# 重启一遍
+reboot
+
+# 然后继续
 # 主机名, 语言, 时间同步
 hostnamectl set-hostname xxxx
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
