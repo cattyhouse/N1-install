@@ -374,7 +374,9 @@ net.ipv4.conf.lo.send_redirects = 0
 net.ipv4.conf.eth0.send_redirects = 0
 net.ipv4.conf.default.send_redirects = 0
 EOF
-sysctl -p
+
+sysctl -p /etc/sysctl.d/*
+
 
 # 提高文件性能
 cat <<'EOF' >> /etc/systemd/system.conf
