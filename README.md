@@ -339,6 +339,13 @@ reboot
 # 然后继续
 # 主机名, 语言, 时间同步
 hostnamectl set-hostname xxxx
+
+cat <<EOF >> /etc/hosts
+127.0.0.1        localhost
+::1              localhost
+127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
+EOF
+
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen # 可能需要蛮久
 localectl set-locale en_US.utf8
