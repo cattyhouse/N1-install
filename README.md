@@ -349,13 +349,14 @@ echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /e
 # 启动 systemd-timesyncd 服务, 因为 N1 没有 RTC 时钟
 timedatectl set-ntp true
 
-# 查询 当前cpu频率
-cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq
-
-# 设备信息
-lscpu
-lsusb
-lsblk
+# cpu 变频
+pacman -S cpupower
+vim /etc/default/cpupower
+# governor='ondemand', min_freq="500MHz" , max_freq="2GHz"
+sudo systemctl start cpupower.service
+sudo systemctl enable cpupower.service
+# 查看
+while true ; do sleep 2 ; cpupower -c all frequency-info | grep -E "current CPU" | cut -d " " -f 5-7 ; echo "\n" ; done
 
 # 提高网络性能
 # 注意 systemd 已经不再开机加载 /etc/sysctl.conf
