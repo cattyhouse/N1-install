@@ -124,15 +124,15 @@
     bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
     mount --bind alarm alarm # 因为 alarm 不是一个挂载点, 所以需要自己 mount 自己, 否则后面会出错.
     cd alarm
+    rm etc/resolv.conf # 删除这个软连接
+    cat /etc/resolv.conf > etc/resolv.conf
     mount -t proc /proc proc
     mount --make-rslave --rbind /sys sys
     mount --make-rslave --rbind /dev dev
     mount --make-rslave --rbind /run run
-    rm -f etc/resolv.conf
-    cp /etc/resolv.conf etc/
     chroot ~/alarm /bin/bash
     source /etc/profile
-    source ~/.bashrc
+    source ~/.bashrc # 如果提示无此文件, 并没有关系.
     export PS1="(chroot) $PS1"
     # 此时 archlinuxarm 的环境已经准备好, 可以跳转到 -- "宿主是 archlinux 系统".
     ```
@@ -275,14 +275,19 @@
 
 - 设置ip
 
-    > 为了简单起见, 这里用了dhcp, N1获取的ip到底是什么, 需要去路由器上看, 或者ping内网网段的ip找出来.
+    > 为了简单起见, 这里用了 DHCP 自动获取 ip, 
+    > 无显示器的话, 可以去路由器上查看获取的 ip 地址
 
     ```bash
-    # 生成配置文件
+    # 有线
     cp /etc/netctl/examples/ethernet-dhcp /etc/netctl/eth0-dhcp
-
-    # 开机启动
     netctl enable eth0-dhcp
+
+    # 无线
+    pacman -S wpa_supplicant crda
+    cp /etc/netctl/examples/wireless-wpa  /etc/netctl/wlan0-dhcp
+    ## 编辑 wlan0-dhcp ESSID 填入 Wi-Fi 的名字 Key 填入 Wi-Fi 的密码
+    netctl enable wlan0-dhcp
     ```
 
 - 设置密码
