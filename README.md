@@ -122,10 +122,10 @@
     curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
     mkdir alarm
     bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
+    rm etc/resolv.conf # 删除这个软连接, 它默认是指向一个一个动态文件
+    cat /etc/resolv.conf > etc/resolv.conf # 同步宿主的DNS设置
     mount --bind alarm alarm # 因为 alarm 不是一个挂载点, 所以需要自己 mount 自己, 否则后面会出错.
     cd alarm
-    rm etc/resolv.conf # 删除这个软连接
-    cat /etc/resolv.conf > etc/resolv.conf
     mount -t proc /proc proc
     mount --make-rslave --rbind /sys sys
     mount --make-rslave --rbind /dev dev
