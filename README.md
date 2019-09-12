@@ -312,8 +312,10 @@
 - 退出
 
     ````        
-    exit
-    umount -vR /mnt
+    exit # 退出 chroot环境
+    umount -vR /mnt # 卸载
+    halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
+    
     ````    
 
 # 初次启动的一些设置
