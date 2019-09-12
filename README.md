@@ -346,11 +346,11 @@
 hostnamectl set-hostname xxxx
 echo 'xxxx' > /etc/hostname
 
-echo '
+echo “
 127.0.0.1        localhost
 ::1              localhost
 127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
-' > /etc/hosts
+” > /etc/hosts
 ```
 - cpu 变频
 
