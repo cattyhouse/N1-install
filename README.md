@@ -436,6 +436,12 @@ EOF
 pacman -Syyuu
 # 重启一遍
 reboot
+
+#  如果你不想更新 kernel 那么勤快, 可以设置下 IgnorePkg 
+echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.conf
+# 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
+# 等你想更新的时候, 直接运行
+pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
 ```
 
 # 在 N1上用 archlinux 编译主线 kernel
