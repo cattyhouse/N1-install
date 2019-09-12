@@ -353,9 +353,16 @@ cat <<EOF >> /etc/hosts
 127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
 EOF
 
-echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
+echo 'en_US.UTF-8 UTF-8
+zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen # 可能需要蛮久
+# 设置系统级别的语言
 localectl set-locale en_US.utf8
+# 设置单个用户的语言:
+echo 'LANG=zh_CN.utf8' > ~/.config/locale.conf # 运行前确保 ~/.config 这个文件夹存在
+unset LANG
+source /etc/profile.d/locale.sh
+# 设置时区
 timedatectl set-timezone Asia/Shanghai
 # 使用阿里云的时间服务器
 echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf
