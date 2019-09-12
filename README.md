@@ -25,9 +25,9 @@
     > 分区, 格式化, 挂载
 
     - 寻找设备路径
-        ````
+        ```bash
         lsblk
-        ````
+        ```
     - 对于安装到U盘来说, 分区和格式化以及挂载
 
         ```bash
@@ -305,18 +305,17 @@
 
 - 设置密码
 
-    ````
+    ```bash
     passwd root
-    ````
+    ```
 
 - 退出
 
-    ````        
+    ```bash
     exit # 退出 chroot环境
     umount -vR /mnt # 卸载
     halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
-    
-    ````    
+    ``` 
 
 # 初次启动的一些设置
 
@@ -583,9 +582,9 @@ pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
 
 - 安装 kernel
 
-    ````
+    ```bash
     pacman -U *.pkg.tar.xz
-    ````
+    ```
 
 ### 使用修改好的 PKGBUILD - 建议使用的方法
 
