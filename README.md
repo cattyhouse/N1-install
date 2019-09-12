@@ -333,8 +333,11 @@
 - 退出
 
     ```bash
-    exit # 退出 chroot环境, 如果是非 archlinux 宿主, 需要运行 2 次 exit
+    exit # 退出 chroot环境
     umount -vR /mnt # 卸载
+    # 如果是非 archlinux 宿主, 还要再运行:
+    exit
+    umount -vR alarm
     halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
     ``` 
 
