@@ -135,8 +135,8 @@
     curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
     mkdir alarm
     bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
-    rm ./alarm/etc/resolv.conf # 删除这个软连接, 它默认是指向一个一个动态文件
-    cat /etc/resolv.conf > ./alarm/etc/resolv.conf # 重新生成此文件, 同步宿主的DNS设置
+    rm alarm/etc/resolv.conf # 删除这个软连接, 它默认是指向一个一个动态文件
+    cat /etc/resolv.conf > alarm/etc/resolv.conf # 重新生成此文件, 同步宿主的DNS设置
     mount --bind alarm alarm # 因为 alarm 不是一个挂载点, 所以需要自己 mount 自己, 否则后面会出错.
     cd alarm
     mount -t proc /proc proc
@@ -337,7 +337,7 @@
     umount -vR /mnt # 卸载, 非常重要的一步, 否则直接关机, U盘数据会因为没有 sync 而部分丢失, 造成各种问题.
     # 如果是非 archlinux 宿主, 还要再运行:
     exit
-    umount -vR alarm
+    umount -vR ~/alarm
     halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
     ``` 
 
