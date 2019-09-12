@@ -102,6 +102,7 @@
     # 安装 kernel
     for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
     pacman -U jerryxiao-keyring-*.pkg.tar.xz
+    rm jerryxiao-keyring-*.pkg.tar.xz
     echo '[jerryxiao]
     Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
     pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1 
@@ -298,6 +299,7 @@
 
     # 无线
     pacman -S wpa_supplicant crda
+    echo 'WIRELESS_REGDOM="CN"' >> /etc/conf.d/wireless-regdom
     cp /etc/netctl/examples/wireless-wpa  /etc/netctl/wlan0-dhcp
     ## 编辑 wlan0-dhcp ESSID 填入 Wi-Fi 的名字 Key 填入 Wi-Fi 的密码
     netctl enable wlan0-dhcp
