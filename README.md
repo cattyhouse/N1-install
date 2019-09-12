@@ -13,9 +13,7 @@
     # 确保网络通畅, DNS 解析没问题. 
     ping www.163.com
     # 确保时间正确
-    timedatectl set-timezone Asia/Shanghai # 设置时区
-    timedatectl set-ntp 1 # 开始同步时间, 可能需要1分钟左右.
-    timedatectl status # 确认 Local time 是否为当前的时间.
+    date
 
     # 准备 pacman 环境
     pacman-key --init
@@ -105,7 +103,7 @@
     rm jerryxiao-keyring-*.pkg.tar.xz
     echo '[jerryxiao]
     Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
-    pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers firmware-phicomm-n1 
+    pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
     ```
 
 - **宿主是其他 arm64 系统**, 比如 armbian,raspbian 等
@@ -127,9 +125,7 @@
     # 确保网络通畅, DNS 解析没问题. 
     ping www.163.com
     # 确保时间正确
-    timedatectl set-timezone Asia/Shanghai # 设置时区
-    timedatectl set-ntp 1 # 开始同步时间, 可能需要1分钟左右.
-    timedatectl status # 确认 Local time 是否为当前的时间.
+    date
 
     # 准备 archlinuxarm环境
     cd ~ 
@@ -272,6 +268,32 @@
         ```
 ## 收尾工作
 
+- 主机名, 语言, 时间同步
+
+    ```bash
+    hostnamectl set-hostname xxxx
+    cat <<EOF >> /etc/hosts
+    127.0.0.1        localhost
+    ::1              localhost
+    127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
+    EOF
+
+    echo 'en_US.UTF-8 UTF-8
+    zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
+    locale-gen # 可能需要蛮久
+    # 设置系统级别的语言
+    localectl set-locale en_US.UTF-8
+    # 设置单个用户的语言:
+    echo 'LANG=zh_CN.UTF-8' > ~/.config/locale.conf # 运行前确保 ~/.config 这个文件夹存在
+    unset LANG
+    source /etc/profile.d/locale.sh
+    # 设置时区
+    timedatectl set-timezone Asia/Shanghai
+    # 使用阿里云的时间服务器
+    echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf
+    # 启动 systemd-timesyncd 服务, 因为 N1 没有 RTC 时钟
+    timedatectl set-ntp 1
+    ```
 - 安装必要的软件并开机启动
 
     ```bash
@@ -298,7 +320,7 @@
     netctl enable eth0-dhcp
 
     # 无线
-    pacman -S wpa_supplicant crda
+    pacman -S wpa_supplicant crda firmware-phicomm-n1
     echo 'WIRELESS_REGDOM="CN"' >> /etc/conf.d/wireless-regdom
     cp /etc/netctl/examples/wireless-wpa  /etc/netctl/wlan0-dhcp
     ## 编辑 wlan0-dhcp ESSID 填入 Wi-Fi 的名字 Key 填入 Wi-Fi 的密码
@@ -319,34 +341,9 @@
     halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
     ``` 
 
-# 初次启动的一些设置
+# 系统调教
 
 ```bash
-# 主机名, 语言, 时间同步
-hostnamectl set-hostname xxxx
-
-cat <<EOF >> /etc/hosts
-127.0.0.1        localhost
-::1              localhost
-127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
-EOF
-
-echo 'en_US.UTF-8 UTF-8
-zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
-locale-gen # 可能需要蛮久
-# 设置系统级别的语言
-localectl set-locale en_US.UTF-8
-# 设置单个用户的语言:
-echo 'LANG=zh_CN.UTF-8' > ~/.config/locale.conf # 运行前确保 ~/.config 这个文件夹存在
-unset LANG
-source /etc/profile.d/locale.sh
-# 设置时区
-timedatectl set-timezone Asia/Shanghai
-# 使用阿里云的时间服务器
-echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf
-# 启动 systemd-timesyncd 服务, 因为 N1 没有 RTC 时钟
-timedatectl set-ntp 1
-
 # cpu 变频
 pacman -S cpupower
 vim /etc/default/cpupower
