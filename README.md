@@ -424,6 +424,22 @@ echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.co
 # 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
 # 等你想更新的时候, 直接运行
 pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
+
+# 切换到 zsh
+pacman -S zsh
+# 安装 zsh 插件, 我推荐 https://github.com/zimfw/zimfw
+zsh # 运行zsh
+git clone --recursive https://github.com/zimfw/zimfw.git ${ZDOTDIR:-${HOME}}/.zim # 克隆
+
+# 生成必要文件
+for template_file in ${ZDOTDIR:-${HOME}}/.zim/templates/*; do
+  user_file="${ZDOTDIR:-${HOME}}/.${template_file:t}"
+  cat ${template_file} ${user_file}(.N) > ${user_file}.tmp && mv ${user_file}{.tmp,}
+done
+
+# 默认启动到zsh
+chsh -s =zsh
+source ${ZDOTDIR:-${HOME}}/.zlogin
 ```
 
 # 题外话
