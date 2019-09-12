@@ -366,8 +366,8 @@ timedatectl set-ntp 1
 pacman -S cpupower
 vim /etc/default/cpupower
 # governor='ondemand', min_freq="500MHz" , max_freq="2GHz"
-sudo systemctl start cpupower.service
-sudo systemctl enable cpupower.service
+systemctl start cpupower.service
+systemctl enable cpupower.service
 # 查看
 while true ; do sleep 2 ; cpupower -c all frequency-info | grep -E "current CPU" | cut -d " " -f 5-7 ; echo "\n" ; done
 
