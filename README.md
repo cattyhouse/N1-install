@@ -9,11 +9,19 @@
     
     > 准备一下系统环境
 
-    ````
+    ```bash
+    # 确保网络通畅, DNS 解析没问题. 
+    ping www.163.com
+    # 确保时间正确
+    timedatectl set-timezone Asia/Shanghai # 设置时区
+    timedatectl set-ntp 1 # 开始同步时间, 可能需要1分钟左右.
+    timedatectl status # 确认 Local time 是否为当前的时间.
+
+    # 准备 pacman 环境
     pacman-key --init
     pacman-key --populate archlinuxarm
     pacman -Sy arch-install-scripts uboot-tools dosfstools
-    ````
+    ```
     > 分区, 格式化, 挂载
 
     - 寻找设备路径
@@ -118,6 +126,14 @@
     ````
 
     ```bash
+    # 确保网络通畅, DNS 解析没问题. 
+    ping www.163.com
+    # 确保时间正确
+    timedatectl set-timezone Asia/Shanghai # 设置时区
+    timedatectl set-ntp 1 # 开始同步时间, 可能需要1分钟左右.
+    timedatectl status # 确认 Local time 是否为当前的时间.
+
+    # 准备 archlinuxarm环境
     cd ~ 
     curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
     mkdir alarm
@@ -347,7 +363,7 @@ timedatectl set-timezone Asia/Shanghai
 # 使用阿里云的时间服务器
 echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf
 # 启动 systemd-timesyncd 服务, 因为 N1 没有 RTC 时钟
-timedatectl set-ntp true
+timedatectl set-ntp 1
 
 # cpu 变频
 pacman -S cpupower
