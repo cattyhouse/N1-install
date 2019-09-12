@@ -341,10 +341,11 @@
     halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
     ``` 
 
-# 系统调教
+# 系统优化
+
+- cpu 变频
 
 ```bash
-# cpu 变频
 pacman -S cpupower
 vim /etc/default/cpupower
 # governor='ondemand', min_freq="500MHz" , max_freq="2GHz"
@@ -352,10 +353,13 @@ systemctl start cpupower.service
 systemctl enable cpupower.service
 # 查看
 while true ; do sleep 2 ; cpupower -c all frequency-info | grep -E "current CPU" | cut -d " " -f 5-7 ; echo ; done
+```
 
-# 提高网络性能
-# 注意 systemd 已经不再开机加载 /etc/sysctl.conf
-# 必须放到 /etc/sysctl.d/
+- 提高网络性能
+> 注意 systemd 已经不再开机加载 /etc/sysctl.conf, 
+> 必须放到 /etc/sysctl.d/
+
+```bash
 cat <<'EOF' > /etc/sysctl.d/sysctl.conf
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
@@ -396,8 +400,11 @@ net.core.netdev_budget_usecs = 5000
 EOF
 
 sysctl -p /etc/sysctl.d/sysctl.conf
+```
 
-# 提高文件性能
+- 提高文件性能
+
+```bash
 cat <<'EOF' >> /etc/systemd/system.conf
 DefaultLimitNOFILE=2097152:2097152
 DefaultLimitNPROC=2097152:2097152
@@ -413,8 +420,10 @@ root      soft    nofile      500000
 root      hard    nproc      500000
 root      soft    nproc      500000
 EOF
+```
+- 切换到 zsh
 
-# 切换到 zsh
+```bash
 pacman -S zsh
 # 安装 zsh 插件, 我推荐 https://github.com/zimfw/zimfw
 zsh # 运行zsh
@@ -430,18 +439,22 @@ done
 chsh -s =zsh
 source ${ZDOTDIR:-${HOME}}/.zlogin
 
-# 更新一下系统
+```
+- 更新一下系统
+
+```bash
 pacman -Syyuu
 # 重启一遍
 reboot
+```
+- 控制内核更新频率
 
+```bash
 #  如果你不想更新 kernel 那么勤快, 可以设置下 IgnorePkg 
 echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.conf
 # 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
 # 等你想更新的时候, 直接运行
 pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
-
-
 ```
 
 # 题外话
