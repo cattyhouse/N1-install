@@ -410,6 +410,9 @@ net.ipv4.tcp_syncookies = 1
 net.core.netdev_budget = 50000
 net.core.netdev_budget_usecs = 5000
 EOF
+# 减少 debug 信息输出到终端 (接显示器的时候)
+echo '# reduce debug message on console when connected to a monitor.
+kernel.printk = 3 4 1 3' >> /etc/sysctl.d/sysctl.conf
 
 sysctl -p /etc/sysctl.d/sysctl.conf
 ```
