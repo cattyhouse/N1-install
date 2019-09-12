@@ -160,12 +160,12 @@
         ```bash
         echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
         ```
-    - 打印 uboot env
+    - 打印 uboot env (**需要在N1本机上操作**)
 
         ```bash
         fw_printenv # 执行一下看是否可以成功输出 uboot env
         ```
-    - 写入 uboot env
+    - 写入 uboot env (**需要在N1本机上操作**)
 
         ```bash
         fw_setenv # 后面会用到, 现在不需要执行.
@@ -258,7 +258,7 @@
         # 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在uboot执行update的时候运行 (adb shell reboot update 之后)
         ```
 
-    - 同步 aml_autoscript 的内容
+    - 同步 aml_autoscript 的内容 (**需要在N1本机上操作**)
 
         > 上面提到过, aml_autoscript 的执行需要特殊环境, 此目的是确保当前的 uboot 环境就像是运行过 aml_autoscript 一样
 
