@@ -316,31 +316,6 @@
     umount -vR /mnt
     ````    
 
-# 题外话: MMC安装之克隆安装
-
-- 用前面做好的archlinux的U盘启动N1, 给MMC [分区,格式化,挂载](https://github.com/cattyhouse/N1-install#安装-base-和-kernel)
-
-- 用rsync克隆U盘的内容到 MMC 分区, 完成后, mmc的内容与U盘一模一样
-
-    ```bash
-    rsync -avPhHAX --numeric-ids  --delete --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
-    ```
-
-- 修改相关文件的UUID
-
-    > 注意, UUID修改后, 如果再运行上面的rsync命令, mmc的这两个文件会被rsync恢复为U盘的对应文件, 这也是rsync的魅力所在, 100%克隆.
-
-    ```bash
-    lsblk -f # 获取 mmcblk1p1 和 mmcblk1p2 的 UUID, 并记住
-    vim /mnt/boot/uEnv.ini #将里面的UUID更换成 /dev/mmcblk1p2 的UUID
-    vim /mnt/etc/fstab # 修改注释里面的sda1 为 mmcblk1p1, 并更换为对应的UUID, 修改注释里面的sda2 为 mmcblk1p2, 并更换为对应的UUID.
-    # umount mmc 并关机
-    cd ~
-    umount -vR /mnt
-    halt
-    ```
-- 拔掉U盘, 拔插电源重启
-
 # 初次启动的一些设置
 
 ```bash
@@ -451,7 +426,34 @@ echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.co
 pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
 ```
 
-# 在 N1上用 archlinux 编译主线 kernel
+# 题外话
+
+## MMC安装之克隆安装
+
+- 用前面做好的archlinux的U盘启动N1, 给MMC [分区,格式化,挂载](https://github.com/cattyhouse/N1-install#安装-base-和-kernel)
+
+- 用rsync克隆U盘的内容到 MMC 分区, 完成后, mmc的内容与U盘一模一样
+
+    ```bash
+    rsync -avPhHAX --numeric-ids  --delete --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
+    ```
+
+- 修改相关文件的UUID
+
+    > 注意, UUID修改后, 如果再运行上面的rsync命令, mmc的这两个文件会被rsync恢复为U盘的对应文件, 这也是rsync的魅力所在, 100%克隆.
+
+    ```bash
+    lsblk -f # 获取 mmcblk1p1 和 mmcblk1p2 的 UUID, 并记住
+    vim /mnt/boot/uEnv.ini #将里面的UUID更换成 /dev/mmcblk1p2 的UUID
+    vim /mnt/etc/fstab # 修改注释里面的sda1 为 mmcblk1p1, 并更换为对应的UUID, 修改注释里面的sda2 为 mmcblk1p2, 并更换为对应的UUID.
+    # umount mmc 并关机
+    cd ~
+    umount -vR /mnt
+    halt
+    ```
+- 拔掉U盘, 拔插电源重启
+
+## 在N1上用 archlinux 编译内核
 
 > 感谢
 > [@isjerryxiao](https://github.com/archlinux-jerry/pkgbuilds) for 二进制编译和下载, 
@@ -460,7 +462,7 @@ pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
 
 > 编译需要在N1上进行, 配合distcc会快很多, distcc需要在N1和x86主机上安装. [参考](https://archlinuxarm.org/wiki/Distcc_Cross-Compiling)
 
-## 手动 (不建议, 此处只是为了记录原理)
+### 手动修改PKGBUILD - 不建议, 此处只是为了记录原理
 
 - 下载 archlinuxarm 的 linux-aarch64 源代码
 
@@ -583,7 +585,7 @@ pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
     pacman -U *.pkg.tar.xz
     ````
 
-## 自动 (建议使用的方法)
+### 使用修改好的 PKGBUILD - 建议使用的方法
 
 > 直接下载修改好的PKGBUILD编译
 
@@ -594,7 +596,7 @@ makepkg -s
 pacman -U *.pkg.tar.xz
 ```
 
-## 二进制 (懒人版)
+### 直接安装编译好的二进制 - 懒人版
 
 ```bash
 for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
