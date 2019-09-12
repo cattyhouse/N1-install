@@ -288,6 +288,7 @@
     localectl set-locale en_US.UTF-8
     # 设置单个用户的语言:
     echo 'LANG=zh_CN.UTF-8' > ~/.config/locale.conf # 运行前确保 ~/.config 这个文件夹存在
+    # 立刻生效
     unset LANG
     source /etc/profile.d/locale.sh
     # 设置时区
