@@ -334,7 +334,7 @@
 
     ```bash
     exit # 退出 chroot环境
-    umount -vR /mnt # 卸载
+    umount -vR /mnt # 卸载, 非常重要的一步, 否则直接关机, U盘数据会因为没有 sync 而部分丢失, 造成各种问题.
     # 如果是非 archlinux 宿主, 还要再运行:
     exit
     umount -vR alarm
