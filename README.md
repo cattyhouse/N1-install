@@ -369,7 +369,7 @@ vim /etc/default/cpupower
 systemctl start cpupower.service
 systemctl enable cpupower.service
 # 查看
-while true ; do sleep 2 ; cpupower -c all frequency-info | grep -E "current CPU" | cut -d " " -f 5-7 ; echo "" ; done
+while true ; do sleep 2 ; cpupower -c all frequency-info | grep -E "current CPU" | cut -d " " -f 5-7 ; echo ; done
 
 # 提高网络性能
 # 注意 systemd 已经不再开机加载 /etc/sysctl.conf
