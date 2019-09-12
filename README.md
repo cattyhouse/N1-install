@@ -18,7 +18,7 @@
     # 准备 pacman 环境
     pacman-key --init
     pacman-key --populate archlinuxarm
-    pacman -Sy arch-install-scripts uboot-tools dosfstools
+    pacman -Sy arch-install-scripts uboot-tools dosfstools vim
     ```
     > 分区, 格式化, 挂载
 
@@ -333,7 +333,7 @@
 - 退出
 
     ```bash
-    exit # 退出 chroot环境
+    exit # 退出 chroot环境, 如果是非 archlinux 宿主, 需要运行 2 次 exit
     umount -vR /mnt # 卸载
     halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
     ``` 
