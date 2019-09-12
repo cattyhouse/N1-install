@@ -357,9 +357,9 @@ echo 'en_US.UTF-8 UTF-8
 zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen # 可能需要蛮久
 # 设置系统级别的语言
-localectl set-locale en_US.utf8
+localectl set-locale en_US.UTF-8
 # 设置单个用户的语言:
-echo 'LANG=zh_CN.utf8' > ~/.config/locale.conf # 运行前确保 ~/.config 这个文件夹存在
+echo 'LANG=zh_CN.UTF-8' > ~/.config/locale.conf # 运行前确保 ~/.config 这个文件夹存在
 unset LANG
 source /etc/profile.d/locale.sh
 # 设置时区
