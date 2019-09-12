@@ -422,12 +422,11 @@ root      soft    nproc      500000
 EOF
 ```
 - 切换到 zsh
-
+> 我推荐 [zimfw](https://github.com/zimfw/zimfw)
 ```bash
-pacman -S zsh
-# 安装 zsh 插件, 我推荐 https://github.com/zimfw/zimfw
-zsh # 运行zsh
-git clone --recursive https://github.com/zimfw/zimfw.git ${ZDOTDIR:-${HOME}}/.zim # 克隆
+pacman -S zsh # 安装 zsh
+zsh # 运行一次 zsh
+git clone --recursive https://github.com/zimfw/zimfw.git ${ZDOTDIR:-${HOME}}/.zim # 克隆 zsh 插件
 
 # 生成必要文件
 for template_file in ${ZDOTDIR:-${HOME}}/.zim/templates/*; do
@@ -438,7 +437,6 @@ done
 # 默认启动到zsh
 chsh -s =zsh
 source ${ZDOTDIR:-${HOME}}/.zlogin
-
 ```
 - 更新一下系统
 
