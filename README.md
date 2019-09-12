@@ -271,22 +271,15 @@
         ```
 ## 收尾工作
 
-- 主机名, 语言, 时间同步
+- 语言, 时间同步
 
     ```bash
-    hostnamectl set-hostname xxxx
-    cat <<EOF >> /etc/hosts
-    127.0.0.1        localhost
-    ::1              localhost
-    127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
-    EOF
-
     echo 'en_US.UTF-8 UTF-8
     zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
     locale-gen # 可能需要蛮久
     # 设置系统级别的语言
     localectl set-locale en_US.UTF-8
-    # 设置单个用户的语言:
+    # 设置单个用户的语言(优先级更高)):
     echo 'LANG=zh_CN.UTF-8' > ~/.config/locale.conf # 运行前确保 ~/.config 这个文件夹存在
     # 立刻生效
     unset LANG
@@ -347,6 +340,18 @@
 
 # 系统优化
 
+- 修改主机名
+
+```bash
+hostnamectl set-hostname xxxx
+echo 'xxxx' > /etc/hostname
+
+echo '
+127.0.0.1        localhost
+::1              localhost
+127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
+' > /etc/hosts
+```
 - cpu 变频
 
 ```bash
