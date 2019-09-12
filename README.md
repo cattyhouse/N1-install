@@ -93,6 +93,9 @@
     ```bash
     # 安装 base
     pacstrap /mnt base
+    # 注意如果U盘的性能不够好, pacstrap 可能会要很久, 甚至自动退出, 如果这一步没走好, 后面会出现各种奇怪的问题.
+    # pacstrap 这一步的时候, 建议开另外一个窗口运行 dmesg -HTPwku, 观察是否有错误产生. 
+    # 如果 pacstrap 卡住 或者自动退出, 先运行 umount -vR /mnt, 再继续 pacstrap, 如果还是不行, 建议更换一个好一点的U盘, :(
     genfstab -U /mnt >> /mnt/etc/fstab
     # 检查下 /mnt/etc/fstab, 除了 "#" 开头的之外, 确保里面只有两行内容, 一行是挂载 "/" 另一行是挂载 "/boot", 其他的(比如/dev/zram*)删掉
     arch-chroot /mnt
