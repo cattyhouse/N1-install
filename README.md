@@ -182,15 +182,11 @@
         ```bash
         curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
         mkdir alarm
-        sudo bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm 
-        sudo systemd-nspawn -b -D alarm # 启动 archlinux arm64 登陆窗口, 先不要登陆
-        # 另外再开一个窗口, 运行
-            sudo machinectl shell alarm
-            echo "pts/0" >> /etc/securetty
-            exit
-            sudo unlink alarm/etc/resolv.conf
-            sudo cp -f /etc/resolv.conf alarm/etc/
-        # 然后登陆, 用户名 root 密码 root
+        sudo bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
+        echo "pts/0" | sudo tee -a alarm/etc/securetty
+        sudo unlink alarm/etc/resolv.conf
+        sudo cp -f /etc/resolv.conf alarm/etc/
+        sudo systemd-nspawn -b -D alarm # 启动 archlinux arm64 登陆窗口, 用户名 root 密码 root
         # 如果需要退出 systemd-nspawn, 运行 halt 或者 CTRL + 敲三下 "]"
         
         # 接下来跳转到 **宿主是 archlinux arm64 系统**
