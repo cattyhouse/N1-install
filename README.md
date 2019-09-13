@@ -5,111 +5,110 @@
 
 ## 安装 base 和 kernel
 
-- **宿主是 archlinux 系统**, 如果是别的系统, 直接跳转到 **宿主是其他 arm64 系统**, 再回来.
+1. **宿主是 archlinux 系统**, 如果是别的系统, 直接跳转到 **宿主是其他 arm64 系统**, 再回来.
     
-    > 准备一下系统环境
-
-    ```bash
-    # 确保网络通畅, DNS 解析没问题. 
-    ping www.163.com
-    # 确保时间正确
-    date
-
-    # 准备 pacman 环境
-    pacman-key --init
-    pacman-key --populate archlinuxarm
-    pacman -Sy arch-install-scripts uboot-tools dosfstools vim
-    ```
-    > 分区, 格式化, 挂载
-
-    - 寻找设备路径
-        ```bash
-        lsblk
-        ```
-    - 对于安装到U盘来说, 分区和格式化以及挂载
+    1. 准备一下系统环境
 
         ```bash
-        fdisk /dev/sda 
-
-        # 不一定叫做sda, 需要您仔细确认
-        # o 创建空白的dos分区表
-        # n 创建新分区, 选primary,容量512M
-        # t 输入 c, 设置 type 为 W95 FAT32 (LBA)
-        # n 创建新分区, 选primary,容量为剩余所有
-        # w 保存
-
-        mkfs.vfat /dev/sda1 # mkfs.vfat 需要 dosfstools 这个包
-        mkfs.ext4 /dev/sda2
-        mount /dev/sda2 /mnt
-        mkdir -p /mnt/boot
-        mount /dev/sda1 /mnt/boot
+        ping www.163.com  # 确保网络通畅, DNS 解析没问题. 
+        date # 确保时间正确
+        # 准备 pacman 环境
+        pacman-key --init
+        pacman-key --populate archlinuxarm
+        pacman -Sy arch-install-scripts uboot-tools dosfstools vim
         ```
+    1. 分区, 格式化, 挂载
 
-    - 对于安装到MMC来说, 分区和格式化以及挂载
+        1. 寻找设备路径
 
-        > MMC的设备名是 **/dev/mmcblk1**
+            ```bash
+            lsblk
+            ```
+        1. 对于安装到U盘来说, 分区和格式化以及挂载
 
-        > 分区必须严格按照下面的格式
+            ```bash
+            fdisk /dev/sda 
 
-        > 注意 **Start**, **End**
+            # 不一定叫做sda, 需要您仔细确认
+            # o 创建空白的dos分区表
+            # n 创建新分区, 选primary,容量512M
+            # t 输入 c, 设置 type 为 W95 FAT32 (LBA)
+            # n 创建新分区, 选primary,容量为剩余所有
+            # w 保存
 
-        > 这样分区的目的是为了避免写入数据到uboot所在的block导致系统变砖.
+            mkfs.vfat /dev/sda1 # mkfs.vfat 需要 dosfstools 这个包
+            mkfs.ext4 /dev/sda2
+            mount /dev/sda2 /mnt
+            mkdir -p /mnt/boot
+            mount /dev/sda1 /mnt/boot
+            ```
+
+        1. 对于安装到MMC来说, 分区和格式化以及挂载
+
+            > MMC的设备名是 **/dev/mmcblk1**
+
+            > 分区必须严格按照下面的格式
+
+            > 注意 **Start**, **End**
+
+            > 这样分区的目的是为了避免写入数据到uboot所在的block导致系统变砖.
+
+            ```bash
+            fdisk /dev/mmcblk1
+
+            # o 创建空白dos分区表
+            # n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
+            # t 修改类型, 输入 c 
+            # n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
+            # w 保存分区表.
+            ```
+            > 分区正确的情况下 `fdisk -l /dev/mmcblk1` 结果如下
+
+            ````
+            Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
+            Units: sectors of 1 * 512 = 512 bytes
+            Sector size (logical/physical): 512 bytes / 512 bytes
+            I/O size (minimum/optimal): 512 bytes / 512 bytes
+            Disklabel type: dos
+            Disk identifier: 0xa502f7df
+
+            Device         Boot   Start      End  Sectors  Size Id Type
+            /dev/mmcblk1p1       221184  1269760  1048577  512M  c W95 FAT32 (LBA)
+            /dev/mmcblk1p2      1400832 15269887 13869056  6.6G 83 Linux
+
+            ````
+            > 格式化并挂载
+
+            ```bash
+            mkfs.vfat /dev/mmcblk1p1 # mkfs.vfat 需要 dosfstools 这个包
+            mkfs.ext4 /dev/mmcblk1p2
+            mount /dev/mmcblk1p2 /mnt
+            mkdir -p /mnt/boot
+            mount /dev/mmcblk1p1 /mnt/boot
+            ```
+    1. 开始安装
 
         ```bash
-        fdisk /dev/mmcblk1
+        pacstrap /mnt base # 安装 base
+        # 注意如果U盘的性能不够好, pacstrap 可能会要很久, 甚至自动退出, 如果这一步没走好, 后面会出现各种奇怪的问题.
+        # pacstrap 这一步的时候, 建议开另外一个窗口运行 dmesg -HTPwku, 观察是否有错误产生. 
+        # 如果 pacstrap 卡住 或者自动退出, 先运行 umount -vR /mnt, 再继续 pacstrap, 如果还是不行, 建议更换一个好一点的U盘, :(
+        genfstab -U /mnt >> /mnt/etc/fstab
+        # 检查下 /mnt/etc/fstab, 除了 "#" 开头的之外, 确保里面只有两行内容, 一行是挂载 "/" 另一行是挂载 "/boot", 其他的(比如/dev/zram*)删掉
+        arch-chroot /mnt
+        # 安装 kernel
+        for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
 
-        # o 创建空白dos分区表
-        # n 创建第一个分区, 选择Primary, 起始 221184 , 终止 1269760.
-        # t 修改类型, 输入 c 
-        # n 创建第二个分区, 选择Primary, 起始 1400832, 终止 15269887.
-        # w 保存分区表.
+        pacman -U jerryxiao-keyring-*.pkg.tar.xz
+        rm jerryxiao-keyring-*.pkg.tar.xz
+        echo '[jerryxiao]
+        Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
+
+        pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
         ```
-        > 分区正确的情况下 `fdisk -l /dev/mmcblk1` 结果如下
 
-        ````
-        Disk /dev/mmcblk1: 7.3 GiB, 7818182656 bytes, 15269888 sectors
-        Units: sectors of 1 * 512 = 512 bytes
-        Sector size (logical/physical): 512 bytes / 512 bytes
-        I/O size (minimum/optimal): 512 bytes / 512 bytes
-        Disklabel type: dos
-        Disk identifier: 0xa502f7df
+1. **宿主是其他 arm64 系统**, 比如 armbian,raspbian 等
 
-        Device         Boot   Start      End  Sectors  Size Id Type
-        /dev/mmcblk1p1       221184  1269760  1048577  512M  c W95 FAT32 (LBA)
-        /dev/mmcblk1p2      1400832 15269887 13869056  6.6G 83 Linux
-
-        ````
-        > 格式化并挂载
-
-        ```bash
-        mkfs.vfat /dev/mmcblk1p1 # mkfs.vfat 需要 dosfstools 这个包
-        mkfs.ext4 /dev/mmcblk1p2
-        mount /dev/mmcblk1p2 /mnt
-        mkdir -p /mnt/boot
-        mount /dev/mmcblk1p1 /mnt/boot
-        ```
-    > 开始安装
-
-    ```bash
-    # 安装 base
-    pacstrap /mnt base
-    # 注意如果U盘的性能不够好, pacstrap 可能会要很久, 甚至自动退出, 如果这一步没走好, 后面会出现各种奇怪的问题.
-    # pacstrap 这一步的时候, 建议开另外一个窗口运行 dmesg -HTPwku, 观察是否有错误产生. 
-    # 如果 pacstrap 卡住 或者自动退出, 先运行 umount -vR /mnt, 再继续 pacstrap, 如果还是不行, 建议更换一个好一点的U盘, :(
-    genfstab -U /mnt >> /mnt/etc/fstab
-    # 检查下 /mnt/etc/fstab, 除了 "#" 开头的之外, 确保里面只有两行内容, 一行是挂载 "/" 另一行是挂载 "/boot", 其他的(比如/dev/zram*)删掉
-    arch-chroot /mnt
-
-    # 安装 kernel
-    for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
-    pacman -U jerryxiao-keyring-*.pkg.tar.xz
-    rm jerryxiao-keyring-*.pkg.tar.xz
-    echo '[jerryxiao]
-    Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
-    pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
-    ```
-
-- **宿主是其他 arm64 系统**, 比如 armbian,raspbian 等
     > 受到 jerry 的启发, 先启动进入 armbian, 然后将 archlinuxarm 的 base 解压到随便一个文件夹中, 
     > 然后 chroot 到archlinuxarm 的 base, 就得到一个 archlinux 的操作环境, 
     > 就可以跳转到 **宿主是 archlinux 系统** 继续安装.
@@ -125,12 +124,10 @@
     ````
 
     ```bash
-    # 确保网络通畅, DNS 解析没问题. 
-    ping www.163.com
-    # 确保时间正确
-    date
+    ping www.163.com # 确保网络通畅, DNS 解析没问题. 
+    date  # 确保时间正确
 
-    # 准备 archlinuxarm环境
+    # 准备 archlinuxarm 环境
     cd ~ 
     curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
     mkdir alarm
@@ -153,44 +150,44 @@
 ## 设置 uboot
 
 
-- 确保可以打印和写入uboot env (uboot 环境变量)
+1. 确保可以打印和写入uboot env (uboot 环境变量)
 
-    - 生成配置文件
+    1. 生成配置文件
 
         ```bash
         echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
         ```
-    - 打印 uboot env (**需要在N1本机上操作**)
+    1. 打印 uboot env (**需要在N1本机上操作**)
 
         ```bash
         fw_printenv # 执行一下看是否可以成功输出 uboot env
         ```
-    - 写入 uboot env (**需要在N1本机上操作**)
+    1. 写入 uboot env (**需要在N1本机上操作**)
 
         ```bash
         fw_setenv # 后面会用到, 现在不需要执行.
         ```
 
-- 创建 uEnv.ini
+1. 创建 uEnv.ini
 
     ```bash
-    # `lsblk -f` 找到 `sda2 或者 mmcblk1p2` 的 `UUID`
-    # 生成 eth0 的 MAC 地址
-    echo $(uuidgen) | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/'
+    lsblk -f # 找到 `sda2 或者 mmcblk1p2` 的 `UUID`
+    echo $(uuidgen) | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/' # 生成 eth0 的 MAC 地址
     # 将生成的信息填入下面, 创建 uEnv.ini
+
     echo 'dtb_name=/dtb.img
     bootargs=root=UUID=找到的root分区的UUID rootflags=data=writeback rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0
     ethaddr=生成的MAC地址' > /boot/uEnv.ini
     ```
 
-- 设置uboot env脚本
+1. 设置uboot env脚本
 
-    > **前方有巨坑, 注意** : 以下代码里面有变量, 所以 cat EOF 必须用单引号, 
+    > 以下代码里面有变量, 所以 cat 'EOF' 必须用单引号, 
     > 而且所有的内容都是单引号, 否则会被 shell 和 uboot 展开, 造成各种问题. 
 
-    > Credit: aml_autoscript.cmd aml_autoscript.zip s905_autoscript.cmd  emmc_autoscript.cmd 均来自大神 150balbes 的 [armbian](https://disk.yandex.ru/d/srrtn6kpnsKz2).
+    > 文件 aml_autoscript.cmd aml_autoscript.zip s905_autoscript.cmd  emmc_autoscript.cmd 均来自大神 150balbes 的 [armbian](https://disk.yandex.ru/d/srrtn6kpnsKz2).
 
-    - aml_autoscript.cmd 和 aml_autoscript.zip
+    1. aml_autoscript.cmd 和 aml_autoscript.zip
 
         ```bash
         cd /boot && curl -OL https://raw.githubusercontent.com/cattyhouse/N1-install/master/aml_autoscript.zip
@@ -209,7 +206,7 @@
         EOF
         ```
 
-    - s905_autoscript.cmd
+    1. s905_autoscript.cmd
 
         ```bash
         cat <<'EOF' > /boot/s905_autoscript.cmd
@@ -229,7 +226,7 @@
         EOF
         ```
 
-    - emmc_autoscript.cmd
+    1. emmc_autoscript.cmd
 
         ```bash
         cat <<'EOF' > /boot/emmc_autoscript.cmd
@@ -243,22 +240,19 @@
         EOF
         ```
 
-    - 生成二进制文件
+    1. 生成二进制文件
 
         ```bash
         cd /boot
         mkimage -C none -A arm -T script -d aml_autoscript.cmd aml_autoscript
         mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
         mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
-        # 说明: 
-        # uboot env 默认的参数为 
-        # start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
-        # 而 start_mmc_autoscript=if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi; 是用来启动安卓的, 因为N1的 mmc为mmc 1, 所以会继续运行 start_emmc_autoscript
-        # 而 start_emmc_autoscript=if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi; 它需要 emmc_autoscript 这个文件.
-        # 所以在N1上, s905_autoscript用于启动U盘或者安卓系统, emmc_autoscript 用于启动 mmc. aml_autoscript 在uboot执行update的时候运行 (adb shell reboot update 之后)
+        # s905_autoscript用于启动U盘或者安卓系统 
+        # emmc_autoscript 用于启动 mmc. 
+        # aml_autoscript 在uboot执行update的时候运行 (adb shell reboot update 之后)
         ```
 
-    - 同步 aml_autoscript 的内容 (**需要在N1本机上操作**)
+    1. 同步 aml_autoscript 的内容 (**需要在N1本机上操作**)
 
         > 上面提到过, aml_autoscript 的执行需要特殊环境, 此目的是确保当前的 uboot 环境就像是运行过 aml_autoscript 一样
 
@@ -271,27 +265,7 @@
         ```
 ## 收尾工作
 
-- 语言, 时间同步
-
-    ```bash
-    echo 'en_US.UTF-8 UTF-8
-    zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
-    locale-gen # 可能需要蛮久
-    # 设置系统级别的语言
-    localectl set-locale en_US.UTF-8
-    # 设置单个用户的语言(优先级更高)):
-    echo 'LANG=zh_CN.UTF-8' > ~/.config/locale.conf # 运行前确保 ~/.config 这个文件夹存在
-    # 立刻生效
-    unset LANG
-    source /etc/profile.d/locale.sh
-    # 设置时区
-    timedatectl set-timezone Asia/Shanghai
-    # 使用阿里云的时间服务器
-    echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf
-    # 启动 systemd-timesyncd 服务, 因为 N1 没有 RTC 时钟
-    timedatectl set-ntp 1
-    ```
-- 安装必要的软件并开机启动
+1. 安装必要的软件并开机启动
 
     ```bash
     pacman -S haveged openssh
@@ -299,14 +273,14 @@
     systemctl enable sshd
     ```
 
-- 临时允许ssh密码登陆root账户
+1. 临时允许ssh密码登陆root账户
 
     ```bash
-    # 出于安全考虑, 建议启动N1后,删除这条,采用 `id_rsa` `ssh key` 登陆
+    # 出于安全考虑, 建议启动N1后,删除这条,采用 ssh key 登陆
     echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
     ```
 
-- 设置ip
+1. 设置ip
 
     > 为了简单起见, 这里用了 DHCP 自动获取 ip, 
     > 无显示器的话, 可以去路由器上查看获取的 ip 地址
@@ -320,169 +294,202 @@
     pacman -S wpa_supplicant crda firmware-phicomm-n1
     echo 'WIRELESS_REGDOM="CN"' >> /etc/conf.d/wireless-regdom
     cp /etc/netctl/examples/wireless-wpa  /etc/netctl/wlan0-dhcp
-    ## 编辑 wlan0-dhcp ESSID 填入 Wi-Fi 的名字 Key 填入 Wi-Fi 的密码
+    vim /etc/netctl/wlan0-dhcp #编辑 wlan0-dhcp ESSID 填入 Wi-Fi 的名字 Key 填入 Wi-Fi 的密码
     netctl enable wlan0-dhcp
     ```
 
-- 设置密码
+1. 设置密码
 
     ```bash
     passwd root
     ```
 
-- 退出
+1. 重启
 
     ```bash
     exit # 退出 chroot环境
     umount -vR /mnt # 卸载, 非常重要的一步, 否则直接关机, U盘数据会因为没有 sync 而部分丢失, 造成各种问题.
-    # 如果是非 archlinux 宿主, 还要再运行:
-    exit
-    umount -vR ~/alarm
+    exit # 如果是非 archlinux 宿主, 还要再运行一次 exit
+    umount -vR ~/alarm  # 如果是非 archlinux 宿主, 需要退出 alarm chroot 环境
     halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
     ``` 
 
+## 首次启动
+
+1. 网络
+
+    ```bash
+    ip a # 确认是否获取ip
+    ping -c 3 114.114.114.114 # 确认网络是否接通
+    ping -c 3 www.163.com # 确认 DNS 是否解析正常
+    ```
+
+1. 语言
+
+    ```bash
+    echo 'en_US.UTF-8 UTF-8
+    zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
+
+    locale-gen # 可能需要蛮久 
+    localectl set-locale en_US.UTF-8 # 设置系统级别的语言
+    mkdir -p ~/.config && echo 'LANG=zh_CN.UTF-8' > ~/.config/locale.conf # 设置单个用户的语言(优先级更高)
+    unset LANG && source /etc/profile.d/locale.sh  # 立刻生效
+    ```
+
+1. 时间同步
+
+    ```bash
+    timedatectl set-timezone Asia/Shanghai  # 设置时区
+    echo 'NTP=ntp1.aliyun.com ntp2.aliyun.com ntp3.aliyun.com ntp4.aliyun.com' >> /etc/systemd/timesyncd.conf # 使用阿里云的时间服务器
+    timedatectl set-ntp true  # 同步时间, 因为 N1 没有 RTC 时钟
+    date # 确认时间是否正确
+    ```
+1. 修改主机名
+
+    ```bash
+    hostnamectl set-hostname xxxx
+    echo 'xxxx' > /etc/hostname
+
+    echo "
+    127.0.0.1        localhost
+    ::1              localhost
+    127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
+    " >> /etc/hosts
+    ```
+
 # 系统优化
 
-- 修改主机名
+1. cpu 变频
 
-```bash
-hostnamectl set-hostname xxxx
-echo 'xxxx' > /etc/hostname
+    ```bash
+    pacman -S cpupower
+    vim /etc/default/cpupower # 设置 governor='ondemand', min_freq="500MHz" , max_freq="2GHz"
+    systemctl start cpupower.service
+    systemctl enable cpupower.service
+    while true ; do sleep 2 ; cpupower -c all frequency-info | grep -E "current CPU" | cut -d " " -f 5-7 ; echo ; done # 观察变频是否工作
+    ```
 
-echo "
-127.0.0.1        localhost
-::1              localhost
-127.0.1.1        $(cat /etc/hostname).localdomain        $(cat /etc/hostname)
-" >> /etc/hosts
-```
-- cpu 变频
+1. 提高网络性能
 
-```bash
-pacman -S cpupower
-vim /etc/default/cpupower
-# governor='ondemand', min_freq="500MHz" , max_freq="2GHz"
-systemctl start cpupower.service
-systemctl enable cpupower.service
-# 查看
-while true ; do sleep 2 ; cpupower -c all frequency-info | grep -E "current CPU" | cut -d " " -f 5-7 ; echo ; done
-```
+    > 注意 systemd 已经不再开机加载 /etc/sysctl.conf, 
+    > 必须放到 /etc/sysctl.d/
 
-- 提高网络性能
-> 注意 systemd 已经不再开机加载 /etc/sysctl.conf, 
-> 必须放到 /etc/sysctl.d/
+    ```bash
+    cat <<'EOF' > /etc/sysctl.d/sysctl.conf
+    net.core.default_qdisc = fq
+    net.ipv4.tcp_congestion_control = bbr
+    net.ipv4.ip_forward = 1
+    net.core.somaxconn = 2048
+    net.core.rmem_default = 1048576
+    net.core.rmem_max = 16777216
+    net.core.wmem_default = 1048576
+    net.core.wmem_max = 16777216
+    net.core.optmem_max = 65536
+    net.ipv4.tcp_rmem = 4096 1048576 2097152
+    net.ipv4.tcp_wmem = 4096 65536 16777216
+    net.ipv4.ip_local_port_range = 20000 60999
+    net.ipv4.tcp_max_syn_backlog = 20000
+    net.core.netdev_max_backlog = 20480
+    net.ipv4.conf.default.send_redirects = 0
+    net.ipv4.conf.default.accept_redirects = 0
+    net.ipv4.conf.eth0.send_redirects = 0
+    net.ipv4.conf.eth0.accept_redirects = 0
+    net.ipv4.conf.lo.send_redirects = 0
+    net.ipv4.conf.lo.accept_redirects = 0
+    net.ipv4.conf.all.send_redirects = 0
+    net.ipv4.conf.all.accept_redirects = 0
+    net.ipv4.udp_rmem_min = 8192
+    net.ipv4.udp_wmem_min = 8192
+    net.ipv4.tcp_fastopen = 3
+    net.ipv4.tcp_tw_reuse = 1
+    net.ipv4.tcp_max_tw_buckets = 2000000
+    net.ipv4.tcp_fin_timeout = 10
+    net.ipv4.tcp_slow_start_after_idle = 0
+    net.ipv4.tcp_keepalive_time = 60
+    net.ipv4.tcp_keepalive_intvl = 10
+    net.ipv4.tcp_keepalive_probes = 6
+    net.ipv4.tcp_mtu_probing = 1
+    net.ipv4.tcp_syncookies = 1
+    net.core.netdev_budget = 50000
+    net.core.netdev_budget_usecs = 5000
+    EOF
 
-```bash
-cat <<'EOF' > /etc/sysctl.d/sysctl.conf
-net.core.default_qdisc = fq
-net.ipv4.tcp_congestion_control = bbr
-net.ipv4.ip_forward = 1
-net.core.somaxconn = 2048
-net.core.rmem_default = 1048576
-net.core.rmem_max = 16777216
-net.core.wmem_default = 1048576
-net.core.wmem_max = 16777216
-net.core.optmem_max = 65536
-net.ipv4.tcp_rmem = 4096 1048576 2097152
-net.ipv4.tcp_wmem = 4096 65536 16777216
-net.ipv4.ip_local_port_range = 20000 60999
-net.ipv4.tcp_max_syn_backlog = 20000
-net.core.netdev_max_backlog = 20480
-net.ipv4.conf.default.send_redirects = 0
-net.ipv4.conf.default.accept_redirects = 0
-net.ipv4.conf.eth0.send_redirects = 0
-net.ipv4.conf.eth0.accept_redirects = 0
-net.ipv4.conf.lo.send_redirects = 0
-net.ipv4.conf.lo.accept_redirects = 0
-net.ipv4.conf.all.send_redirects = 0
-net.ipv4.conf.all.accept_redirects = 0
-net.ipv4.udp_rmem_min = 8192
-net.ipv4.udp_wmem_min = 8192
-net.ipv4.tcp_fastopen = 3
-net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_max_tw_buckets = 2000000
-net.ipv4.tcp_fin_timeout = 10
-net.ipv4.tcp_slow_start_after_idle = 0
-net.ipv4.tcp_keepalive_time = 60
-net.ipv4.tcp_keepalive_intvl = 10
-net.ipv4.tcp_keepalive_probes = 6
-net.ipv4.tcp_mtu_probing = 1
-net.ipv4.tcp_syncookies = 1
-net.core.netdev_budget = 50000
-net.core.netdev_budget_usecs = 5000
-EOF
-# 减少 debug 信息输出到终端 (接显示器的时候)
-echo '# reduce debug message on console when connected to a monitor.
-kernel.printk = 3 4 1 3' >> /etc/sysctl.d/sysctl.conf
+    # 减少输出到终端的 debug 信息(接显示器的时候)
+    echo '# reduce debug message on console when connected to a monitor.
+    kernel.printk = 3 4 1 3' >> /etc/sysctl.d/sysctl.conf
 
-sysctl -p /etc/sysctl.d/sysctl.conf
-```
+    sysctl -p /etc/sysctl.d/sysctl.conf # 立刻生效
+    ```
 
-- 提高文件性能
+1. 提高文件性能
 
-```bash
-cat <<'EOF' >> /etc/systemd/system.conf
-DefaultLimitNOFILE=2097152:2097152
-DefaultLimitNPROC=2097152:2097152
-EOF
+    ```bash
+    cat <<'EOF' >> /etc/systemd/system.conf
+    DefaultLimitNOFILE=2097152:2097152
+    DefaultLimitNPROC=2097152:2097152
+    EOF
 
-cat <<'EOF' >> /etc/security/limits.conf
-*         hard    nofile      500000
-*         soft    nofile      500000
-root      hard    nofile      500000
-root      soft    nofile      500000
-*         hard    nproc      500000
-*         soft    nproc      500000
-root      hard    nproc      500000
-root      soft    nproc      500000
-EOF
-```
-- 切换到 zsh
-> 我推荐 [zimfw](https://github.com/zimfw/zimfw)
-```bash
-pacman -S zsh # 安装 zsh
-zsh # 运行一次 zsh
-git clone --recursive https://github.com/zimfw/zimfw.git ${ZDOTDIR:-${HOME}}/.zim # 克隆 zsh 插件
+    cat <<'EOF' >> /etc/security/limits.conf
+    *         hard    nofile      500000
+    *         soft    nofile      500000
+    root      hard    nofile      500000
+    root      soft    nofile      500000
+    *         hard    nproc      500000
+    *         soft    nproc      500000
+    root      hard    nproc      500000
+    root      soft    nproc      500000
+    EOF
+    ```
 
-# 生成必要文件
-for template_file in ${ZDOTDIR:-${HOME}}/.zim/templates/*; do
-  user_file="${ZDOTDIR:-${HOME}}/.${template_file:t}"
-  cat ${template_file} ${user_file}(.N) > ${user_file}.tmp && mv ${user_file}{.tmp,}
-done
+1. 切换到 zsh
 
-# 默认启动到zsh
-chsh -s =zsh
-source ${ZDOTDIR:-${HOME}}/.zlogin
-```
-- 更新一下系统
+    > 我推荐 [zimfw](https://github.com/zimfw/zimfw)
+    ```bash
+    pacman -S zsh # 安装 zsh
+    zsh # 运行一次 zsh
+    git clone --recursive https://github.com/zimfw/zimfw.git ${ZDOTDIR:-${HOME}}/.zim # 克隆 zsh 插件
 
-```bash
-pacman -Syyuu
-# 重启一遍
-reboot
-```
-- 控制内核更新频率
+    # 生成必要文件
+    for template_file in ${ZDOTDIR:-${HOME}}/.zim/templates/*; do
+    user_file="${ZDOTDIR:-${HOME}}/.${template_file:t}"
+    cat ${template_file} ${user_file}(.N) > ${user_file}.tmp && mv ${user_file}{.tmp,}
+    done
 
-```bash
-#  如果你不想更新 kernel 那么勤快, 可以设置下 IgnorePkg 
-echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.conf
-# 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
-# 等你想更新的时候, 直接运行
-pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
-```
+    # 默认启动到zsh
+    chsh -s =zsh
+    source ${ZDOTDIR:-${HOME}}/.zlogin
+    ```
+    
+1. 更新一下系统
+
+    ```bash
+    pacman -Syyuu
+    # 重启一遍
+    reboot
+    ```
+    1. 控制内核更新频率
+
+    ```bash
+    #  如果你不想更新 kernel 那么勤快, 可以设置下 IgnorePkg 
+    echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.conf
+    # 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
+    # 等你想更新的时候, 直接运行
+    pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
+    ```
 
 # 题外话
 
 ## MMC安装之克隆安装
 
-- 用前面做好的archlinux的U盘启动N1, 给MMC [分区,格式化,挂载](https://github.com/cattyhouse/N1-install#安装-base-和-kernel)
+1. 用前面做好的archlinux的U盘启动N1, 给MMC [分区,格式化,挂载](https://github.com/cattyhouse/N1-install#安装-base-和-kernel)
 
-- 用rsync克隆U盘的内容到 MMC 分区, 完成后, mmc的内容与U盘一模一样
+1. 用rsync克隆U盘的内容到 MMC 分区, 完成后, mmc的内容与U盘一模一样
 
     ```bash
     rsync -avPhHAX --numeric-ids  --delete --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/lost+found"} / /mnt
     ```
 
-- 修改相关文件的UUID
+1. 修改相关文件的UUID
 
     > 注意, UUID修改后, 如果再运行上面的rsync命令, mmc的这两个文件会被rsync恢复为U盘的对应文件, 这也是rsync的魅力所在, 100%克隆.
 
@@ -495,7 +502,7 @@ pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
     umount -vR /mnt
     halt
     ```
-- 拔掉U盘, 拔插电源重启
+1. 拔掉U盘, 拔插电源重启
 
 ## 在N1上用 archlinux 编译内核
 
@@ -508,7 +515,7 @@ pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
 
 ### 手动修改PKGBUILD - 不建议, 此处只是为了记录原理
 
-- 下载 archlinuxarm 的 linux-aarch64 源代码
+1. 下载 archlinuxarm 的 linux-aarch64 源代码
 
     ``` bash
     mkdir -p ~/n1
@@ -516,9 +523,9 @@ pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
     cp -r PKGBUILDs/core/linux-aarch64 ~/n1/
     ```
 
-- 修改 *`~/n1/linux-aarch64/PKGBUILD`*
+1. 修改 *`~/n1/linux-aarch64/PKGBUILD`*
 
-    - 在 **`cat "${srcdir}/config" > ./.config`** 后面插入
+    1. 在 **`cat "${srcdir}/config" > ./.config`** 后面插入
     
         ```bash
         # Amlogic meson SoC TEXT_OFFSET
@@ -605,16 +612,16 @@ pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
         };' > ./arch/arm64/boot/dts/amlogic/meson-gxl-s905d-phicomm-n1.dts
         ```
 
-    - 在 **`make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install`** 后面增加
+    1. 在 **`make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install`** 后面增加
 
         ```bash
         # cp meson-gxl-s905d-phicomm-n1.dtb as dtb.img, for s905_autoscript to load
         cp "${pkgdir}/boot/dtbs/amlogic/meson-gxl-s905d-phicomm-n1.dtb" "${pkgdir}/boot/dtb.img" 
         ```
 
-    - 修改 *`pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-chromebook")`* 为 **`pkgname=("${pkgbase}" "${pkgbase}-headers")`** 避免编译chromebook的kernel
+    1. 修改 *`pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-chromebook")`* 为 **`pkgname=("${pkgbase}" "${pkgbase}-headers")`** 避免编译chromebook的kernel
 
-- 编译 kernel 
+1. 编译 kernel 
 
     > 使用distcc的情况下大约3小时~4小时
 
@@ -623,7 +630,7 @@ pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
     makepkg -s
     ```
 
-- 安装 kernel
+1. 安装 kernel
 
     ```bash
     pacman -U *.pkg.tar.xz
