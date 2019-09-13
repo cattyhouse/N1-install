@@ -5,7 +5,9 @@
 
 ## 安装 base 和 kernel
 
-1. **宿主是 archlinux 系统**, 如果是别的系统, 直接跳转到 **宿主是其他 arm64 系统**, 再回来.
+1. **宿主是 archlinux arm64 系统**
+    
+    > 如果是别的系统, 直接跳转到 **宿主是其他 arm64 系统** 或者 **宿主是 x86_64 系统** 再回来.
     
     1. 准备一下系统环境
 
@@ -145,8 +147,42 @@
     source /etc/profile
     source ~/.bashrc # 如果提示无此文件, 并没有关系.
     export PS1="(chroot) $PS1"
-    # 此时 archlinuxarm 的环境已经准备好, 可以跳转到 -- "宿主是 archlinux 系统".
+    # 此时 archlinuxarm 的环境已经准备好, 接下来跳转到 **宿主是 archlinux arm64 系统**
     ```
+
+1. **宿主是 x86_64 系统**, 以 archlinux x86_64 为例
+
+    > 方法来自 Jerry 的提示
+    > 这里我们用 systemd-nspawn 来启动一个 archlinux arm64 的环境, 然后再继续操作
+
+    1. 安装 qemu-user-static-bin
+
+        ```bash
+        git clone https://aur.archlinux.org/qemu-user-static-bin.git
+        cd qemu-user-static-bin
+        vim PKGBUILD
+        # 修改 _debrel='+dfsg-8' 为 _debrel='+dfsg-8+deb10u2'
+        # 修改 _csum=02578dafdffe8953a15ca62d3cc10e87bbf31294052061966c908a25bddbce46 为 _csum=SKIP
+        makepkg -si # 安装
+        cd -
+        ```
+    1. 安装 binfmt-qemu-static
+       
+        ```bash
+        git clone https://aur.archlinux.org/binfmt-qemu-static.git
+        cd binfmt-qemu-static
+        makepkg -si 
+        cd -
+        ```
+    3. 启动 archlinux arm64 环境
+
+        ```bash
+        curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
+        mkdir alarm
+        bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
+        sudo systemd-nspawn -b -D alarm # 启动 archlinux arm64
+        # 接下来跳转到 **宿主是 archlinux arm64 系统**
+        ```
 
 ## 设置 uboot
 
