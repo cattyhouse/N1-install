@@ -101,6 +101,7 @@
 
         pacman -U jerryxiao-keyring-*.pkg.tar.xz
         rm jerryxiao-keyring-*.pkg.tar.xz
+        
         echo '[jerryxiao]
         Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
 
@@ -459,7 +460,7 @@
     chsh -s =zsh
     source ${ZDOTDIR:-${HOME}}/.zlogin
     ```
-    
+
 1. 更新一下系统
 
     ```bash
@@ -467,15 +468,15 @@
     # 重启一遍
     reboot
     ```
-    1. 控制内核更新频率
+1. 控制内核更新频率
 
-    ```bash
-    #  如果你不想更新 kernel 那么勤快, 可以设置下 IgnorePkg 
-    echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.conf
-    # 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
-    # 等你想更新的时候, 直接运行
-    pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
-    ```
+```bash
+#  如果你不想更新 kernel 那么勤快, 可以设置下 IgnorePkg 
+echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.conf
+# 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
+# 等你想更新的时候, 直接运行
+pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
+```
 
 # 题外话
 
