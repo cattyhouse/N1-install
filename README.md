@@ -1,9 +1,10 @@
 # 安装 Archlinux
 
-> 以下操作需要在arm64系统下面进行, 比如 archlinux, armbian, raspbian 等等. 
-> x86下面也是有可能的, 需要用到 systemd-nspawn 来启动一个 archlinux arm64 的系统.
+> 可以在 arm64 系统下面操作, 比如 archlinuxarm, armbian, raspbian 等等
 
-## 安装 base 和 kernel
+> 也可以在 x86_64 的 linux 下面操作
+
+## 安装 base 和 内核
 
 1. **宿主是 archlinux arm64 系统**
     
@@ -98,7 +99,8 @@
         genfstab -U /mnt >> /mnt/etc/fstab
         # 检查下 /mnt/etc/fstab, 除了 "#" 开头的之外, 确保里面只有两行内容, 一行是挂载 "/" 另一行是挂载 "/boot", 其他的(比如/dev/zram*)删掉
         arch-chroot /mnt
-        # 安装 kernel
+
+        # 安装 内核
         for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
 
         pacman -U jerryxiao-keyring-*.pkg.tar.xz
@@ -110,9 +112,9 @@
         pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
         ```
 
-1. **宿主是其他 arm64 系统**, 比如 armbian,raspbian 等
+1. **宿主是其他 arm64 系统**, 比如 armbian, raspbian 等
 
-    > 受到 jerry 的启发, 先启动进入 armbian, 然后将 archlinuxarm 的 base 解压到随便一个文件夹中, 
+    > 受到 Jerry 的启发, 先启动进入 armbian, 然后将 archlinuxarm 的 base 解压到随便一个文件夹中, 
     > 然后 chroot 到archlinuxarm 的 base, 就得到一个 archlinux 的操作环境, 
     > 就可以跳转到 **宿主是 archlinux 系统** 继续安装.
     
@@ -147,26 +149,27 @@
     source /etc/profile
     source ~/.bashrc # 如果提示无此文件, 并没有关系.
     export PS1="(chroot) $PS1"
-    # 此时 archlinuxarm 的环境已经准备好, 接下来跳转到 **宿主是 archlinux arm64 系统**
+    # 此时 archlinuxarm arm64 环境已经准备好, 接下来跳转到 **宿主是 archlinux arm64 系统**
     ```
 
 1. **宿主是 x86_64 系统**, 以 archlinux x86_64 为例
 
     > 方法来自 Jerry 的提示
+
     > 这里我们用 systemd-nspawn 来启动一个 archlinux arm64 的环境, 然后再继续操作
 
-    1. 安装 qemu-user-static-bin
+    1. 安装 qemu-user-static-bin (普通用户下进行)
 
         ```bash
         git clone https://aur.archlinux.org/qemu-user-static-bin.git
         cd qemu-user-static-bin
         vim PKGBUILD
-        # 修改 _debrel='+dfsg-8' 为 _debrel='+dfsg-8+deb10u2'
+        # 修改 _debrel='+dfsg-8' 为 _debrel='+dfsg-8~deb10u1'
         # 修改 _csum=02578dafdffe8953a15ca62d3cc10e87bbf31294052061966c908a25bddbce46 为 _csum=SKIP
-        makepkg -si # 安装
+        makepkg -si
         cd -
         ```
-    1. 安装 binfmt-qemu-static
+    1. 安装 binfmt-qemu-static (普通用户下进行)
        
         ```bash
         git clone https://aur.archlinux.org/binfmt-qemu-static.git
@@ -174,18 +177,26 @@
         makepkg -si 
         cd -
         ```
-    3. 启动 archlinux arm64 环境
+    1. 启动 archlinux arm64 环境 (普通用户下进行)
 
         ```bash
         curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
         mkdir alarm
-        bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
-        sudo systemd-nspawn -b -D alarm # 启动 archlinux arm64
+        sudo bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm 
+        sudo systemd-nspawn -b -D alarm # 启动 archlinux arm64 登陆窗口, 先不要登陆
+        # 另外再开一个窗口, 运行
+            sudo machinectl shell alarm
+            echo "pts/0" >> /etc/securetty
+            exit
+            sudo unlink alarm/etc/resolv.conf
+            sudo cp -f /etc/resolv.conf alarm/etc/
+        # 然后登陆, 用户名 root 密码 root
+        # 如果需要退出 systemd-nspawn, 运行 halt 或者 CTRL + 敲三下 "]"
+        
         # 接下来跳转到 **宿主是 archlinux arm64 系统**
         ```
 
 ## 设置 uboot
-
 
 1. 确保可以打印和写入uboot env (uboot 环境变量)
 
