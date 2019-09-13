@@ -513,14 +513,25 @@
     ```
 1. 控制内核更新频率
 
-```bash
-#  如果你不想更新 kernel 那么勤快, 可以设置下 IgnorePkg 
-echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.conf
-# 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
-# 等你想更新的时候, 直接运行
-pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
-```
+    ```bash
+    #  如果你不想更新 kernel 那么勤快, 可以设置下 IgnorePkg 
+    echo 'IgnorePkg   = linux-phicomm-n1 linux-phicomm-n1-headers' >> /etc/pacman.conf
+    # 这样下次运行 pacman -Syu 更新系统的时候, 如果有新的 kernel, 就不会更新, 只会给你警告.
+    # 等你想更新的时候, 直接运行
+    pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
+    ```
 
+1. 优化日志存储
+
+    ```bash
+    cat << 'EOF' >> /etc/systemd/journald.conf
+    # 日志写入内存, 减少磁盘读写
+    Storage=volatile
+    # 日志最多占用100M空间
+    SystemMaxUse=100M
+    RuntimeMaxUse=100M
+    EOF
+    ```
 # 题外话
 
 ## MMC安装之克隆安装
