@@ -8,12 +8,12 @@
 
 1. **宿主是 archlinux arm64 系统**
     
-    > 如果是别的系统, 直接跳转到 **宿主是其他 arm64 系统** 或者 **宿主是 x86_64 系统** 再回来.
+    > 如果是别的系统, 直接跳转到 **宿主是其他 arm64 系统** 再回来.
     
     1. 准备一下系统环境
 
         ```bash
-        ping www.163.com  # 确保网络通畅, DNS 解析没问题. 
+        ping -c 3 www.163.com  # 确保网络通畅, DNS 解析没问题. 
         date # 确保时间正确
         # 准备 pacman 环境
         pacman-key --init
@@ -129,7 +129,7 @@
     ````
 
     ```bash
-    ping www.163.com # 确保网络通畅, DNS 解析没问题. 
+    ping -c 3 www.163.com # 确保网络通畅, DNS 解析没问题. 
     date  # 确保时间正确
 
     # 准备 archlinuxarm 环境
@@ -151,46 +151,6 @@
     export PS1="(chroot) $PS1"
     # 此时 archlinuxarm arm64 环境已经准备好, 接下来跳转到 **宿主是 archlinux arm64 系统**
     ```
-
-1. **宿主是 x86_64 系统**, 以 archlinux x86_64 为例
-
-    > 方法来自 Jerry 的提示
-
-    > 这里我们用 systemd-nspawn 来启动一个 archlinux arm64 的环境, 然后再继续操作
-
-    1. 安装 qemu-user-static-bin (普通用户下进行)
-
-        ```bash
-        git clone https://aur.archlinux.org/qemu-user-static-bin.git
-        cd qemu-user-static-bin
-        vim PKGBUILD
-        # 修改 _debrel='+dfsg-8' 为 _debrel='+dfsg-8~deb10u1'
-        # 修改 _csum=02578dafdffe8953a15ca62d3cc10e87bbf31294052061966c908a25bddbce46 为 _csum=SKIP
-        makepkg -si
-        cd -
-        ```
-    1. 安装 binfmt-qemu-static (普通用户下进行)
-       
-        ```bash
-        git clone https://aur.archlinux.org/binfmt-qemu-static.git
-        cd binfmt-qemu-static
-        makepkg -si 
-        cd -
-        ```
-    1. 启动 archlinux arm64 环境 (普通用户下进行)
-
-        ```bash
-        curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-        mkdir alarm
-        sudo bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
-        echo "pts/0" | sudo tee -a alarm/etc/securetty
-        sudo unlink alarm/etc/resolv.conf
-        sudo cp -f /etc/resolv.conf alarm/etc/
-        sudo systemd-nspawn -b -D alarm # 启动 archlinux arm64 登陆窗口, 用户名 root 密码 root
-        # 如果需要退出 systemd-nspawn, 运行 halt 或者 CTRL + 敲三下 "]"
-        
-        # 接下来跳转到 **宿主是 archlinux arm64 系统**
-        ```
 
 ## 设置 uboot
 
