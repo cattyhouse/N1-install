@@ -1,8 +1,6 @@
 # 安装 Archlinux
 
-> 可以在 arm64 系统下面操作, 比如 archlinuxarm, armbian, raspbian 等等
-
-> 也可以在 x86_64 的 linux 下面操作
+> 以下均在 arm64 系统下面操作, 比如 archlinuxarm, armbian, raspbian 等等
 
 ## 安装 base 和 内核
 
