@@ -313,7 +313,7 @@
     umount -vR /mnt # 卸载, 非常重要的一步, 否则直接关机, U盘数据会因为没有 sync 而部分丢失, 造成各种问题.
     exit # 如果是非 archlinux 宿主, 还要再运行一次 exit
     umount -vR ~/alarm  # 如果是非 archlinux 宿主, 需要退出 alarm chroot 环境
-    halt # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
+    poweroff # 关机, 然后拔插电源开机, 从MMC启动的话需要拔掉U盘, 因为U盘优先级更高.
     ``` 
 
 ## 首次启动
@@ -513,7 +513,7 @@
     # umount mmc 并关机
     cd ~
     umount -vR /mnt
-    halt
+    poweroff
     ```
 1. 拔掉U盘, 拔插电源重启
 
