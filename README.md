@@ -294,6 +294,7 @@
     # 如果希望插网线再启动, 拔网线就停止,那么需要
     echo 'ExcludeAuto=no' >> /etc/netctl/eth0-dhcp
     echo 'Priority=2' >> /etc/netctl/eth0-dhcp # 可选
+    echo 'ForceConnect=yes' >> /etc/netctl/eth0-dhcp # 可选, 确保 eth0 up状态下也可以启动.
     pacman -Sy ifplugd
     netctl disable eth0-dhcp
     systemctl enable netctl-ifplugd@eth0.service
