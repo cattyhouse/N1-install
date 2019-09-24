@@ -265,6 +265,32 @@
         fw_setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
         fw_setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done'
         ```
+
+    1. 补充额外的 env (**需要在N1本机上操作**)
+
+        > 补充因刷机丢失的 env 
+
+        ```bash
+        cat <<'EOF' > ~/add_env
+        fw_setenv bootargs 'rootfstype=ramfs init=/init console=ttyS0,115200 no_console_suspend earlyprintk=aml-uart,0xc81004c0 ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 androidboot.selinux=enforcing logo=osd1,loaded,0x3d800000,576cvbs maxcpus=4 vout=576cvbs,enable hdmimode=1080p60hz cvbsmode=576cvbs hdmitx= cvbsdrv=0 pq= androidboot.firstboot=0 androidboot.factorystep=2 jtag=apao androidboot.hardware=amlogic androidboot.serialno=CAQDB3075K26485 mac=00:00:00:00:00:00 androidboot.mac=00:00:00:00:00:00 mac_wifi=00:00:00:00:00:00 androidboot.mac_wifi=00:00:00:00:00:00 androidboot.slot_suffix=_a quiet aml_dt=gxl_p230_2g recovery_part={recovery_part} recovery_offset={recovery_offset} aml_dt=gxl_p230_2g recovery_part={recovery_part} recovery_offset={recovery_offset}'
+        fw_setenv bootup_offset '0x1130180'
+        fw_setenv bootup_size '0x3f4846'
+        fw_setenv ethact 'dwmac.c9410000'
+        fw_setenv mac '00:00:00:00:00:00'
+        fw_setenv mac_wifi '00:00:00:00:00:00'
+        fw_setenv maxcpus 4
+        fw_setenv reboot_mode 'watchdog_reboot'
+        fw_setenv serial 'CAQDB3075K26485'
+        fw_setenv stderr 'serial'
+        fw_setenv stdin 'serial'
+        fw_setenv stdout 'serial'
+        fw_setenv usid 'CAQDB3075K26485'
+        EOF
+
+        sed -i "s/00:00:00:00:00:00/$(uuidgen | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/')/g" ~/add_env
+        bash add_env
+
+        ```
 ## 收尾工作
 
 1. 安装必要的软件并开机启动
