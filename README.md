@@ -332,6 +332,18 @@
     cp /etc/netctl/examples/wireless-wpa  /etc/netctl/wlan0-dhcp
     vim /etc/netctl/wlan0-dhcp #编辑 wlan0-dhcp ESSID 填入 Wi-Fi 的名字 Key 填入 Wi-Fi 的密码
     netctl enable wlan0-dhcp
+
+    # wifi 相关操作 
+    pacman -S iw # 安装 iw 
+    iw dev wlan0 info # 连接信息, 频道等
+    iw dev wlan0 link # 连接信息, 速度等
+    iw dev wlan0 scan # 扫描
+    iw dev wlan0 get power_save # 节能状态
+    iw dev wlan0 set power_save off/on # 关闭开启节能
+    iw phy phy0 info # Wi-Fi 卡的信息
+    iw list # 列出 Wi-Fi 卡, 物理属性 
+    iw dev # 列出 Wi-Fi 卡, 连接属性
+
     ```
 
 1. 设置密码
