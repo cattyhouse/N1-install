@@ -174,7 +174,7 @@
 
     ```bash
     lsblk -f # 找到 `sda2 或者 mmcblk1p2` 的 `UUID`
-    echo $(uuidgen) | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/' # 生成 eth0 的 MAC 地址
+    uuidgen | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/' # 生成 eth0 的 MAC 地址
     # 将生成的信息填入下面, 创建 uEnv.ini
 
     echo 'dtb_name=/dtb.img
@@ -196,7 +196,7 @@
 
         cat <<'EOF' > /boot/aml_autoscript.cmd
         defenv
-        setenv bootcmd 'run start_autoscript; run storeboot'
+        setenv bootcmd 'run start_autoscript; run storeboot;'
         setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
         setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
         setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
@@ -259,7 +259,7 @@
         > 上面提到过, aml_autoscript 的执行需要特殊环境, 此目的是确保当前的 uboot 环境就像是运行过 aml_autoscript 一样
 
         ```bash
-        fw_setenv bootcmd 'run start_autoscript; run storeboot'
+        fw_setenv bootcmd 'run start_autoscript; run storeboot;'
         fw_setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
         fw_setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
         fw_setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
