@@ -448,7 +448,6 @@
     net.ipv4.conf.all.accept_redirects = 0
     net.ipv4.udp_rmem_min = 8192
     net.ipv4.udp_wmem_min = 8192
-    net.ipv4.tcp_fastopen = 3
     net.ipv4.tcp_tw_reuse = 1
     net.ipv4.tcp_max_tw_buckets = 2000000
     net.ipv4.tcp_fin_timeout = 10
