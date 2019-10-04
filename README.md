@@ -310,28 +310,65 @@
 
 1. 设置ip
 
-    > 为了简单起见, 这里用了 DHCP 自动获取 ip, 
-    > 无显示器的话, 可以去路由器上查看获取的 ip 地址
+    > 以下配置包含了 DHCP 和 静态, 根据情况注释掉.
 
     ```bash
     # 有线
-    cp /etc/netctl/examples/ethernet-dhcp /etc/netctl/eth0-dhcp
-    netctl enable eth0-dhcp
-    # 如果希望插网线再启动, 拔网线就停止,那么需要
-    echo 'ExcludeAuto=no' >> /etc/netctl/eth0-dhcp
-    echo 'Priority=2' >> /etc/netctl/eth0-dhcp # 可选
-    echo 'ForceConnect=yes' >> /etc/netctl/eth0-dhcp # 可选, 确保 eth0 up状态下也可以启动.
-    pacman -Sy ifplugd
-    netctl disable eth0-dhcp
-    systemctl enable netctl-ifplugd@eth0.service
+    # 设置 ip
+    cat <<'EOF' > /etc/systemd/network/20-wired.network
+    [Match]
+    Name=eth0
+    [Network]
+    ## DHCP 根据需要注释
+    DHCP=ipv4
 
+    ## Static 根据需要注释
+    Address=192.168.99.99/24
+    Gateway=192.168.99.1
 
+    [Link]
+    ## set to yes to disable this network
+    Unmanaged=no
+    EOF
+
+    # 启动 networkd 服务
+    systemctl enable systemd-networkd
+
+    # DNS 设置
+    rm -f /etc/resolv.conf
+    echo 'nameserver 1.1.1.1
+    nameserver 8.8.8.8' > /etc/resolv.conf
+    
+    ## -------------------
     # 无线
+    # 安装软件
     pacman -S wpa_supplicant crda firmware-phicomm-n1
     echo 'WIRELESS_REGDOM="CN"' >> /etc/conf.d/wireless-regdom
-    cp /etc/netctl/examples/wireless-wpa  /etc/netctl/wlan0-dhcp
-    vim /etc/netctl/wlan0-dhcp #编辑 wlan0-dhcp ESSID 填入 Wi-Fi 的名字 Key 填入 Wi-Fi 的密码
-    netctl enable wlan0-dhcp
+    # 设置 wpa_supplicant 服务
+    wpa_passphrase Wi-Fi名称 Wi-Fi密码 | tee /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+    systemctl enable wpa_supplicant@wlan0
+    # 设置ip
+
+    cat <<'EOF' > /etc/systemd/network/25-wlan0.network
+    [Match]
+    Name=wlan0
+    [Network]
+    ## DHCP 根据需要注释
+    DHCP=ipv4
+
+    ## Static 根据需要注释
+    Address=192.168.99.99/24
+    Gateway=192.168.99.1
+
+    [Link]
+    ## set to yes to disable this network
+    Unmanaged=no
+    EOF
+
+    # 启动 networkd 服务
+    systemctl enable systemd-networkd
+
+    # DNS 设置同上
 
     # wifi 相关操作 
     pacman -S iw # 安装 iw 
