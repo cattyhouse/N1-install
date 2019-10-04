@@ -564,7 +564,7 @@
 1. 优化日志存储
 
     ```bash
-    cat << 'EOF' >> /etc/systemd/journald.conf
+    cat <<'EOF' >> /etc/systemd/journald.conf
     # 日志写入内存, 减少磁盘读写
     Storage=volatile
     # 日志最多占用100M空间
