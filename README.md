@@ -576,7 +576,7 @@
 
 ## MMC安装之克隆安装
 
-1. 用前面做好的archlinux的U盘启动N1, 给MMC [分区,格式化,挂载](https://github.com/cattyhouse/N1-install#安装-base-和-kernel)
+1. 用前面做好的archlinux的U盘启动N1, 给MMC [分区,格式化,挂载](https://github.com/cattyhouse/N1-install#安装-base-和-内核)
 
 1. 用rsync克隆U盘的内容到 MMC 分区, 完成后, mmc的内容与U盘一模一样
 
