@@ -1,3 +1,7 @@
+# 用 N1 自动编译 Kernel 并推送消息到 telegram 的机器人
+
+[自己做的一个简单的自动编译的脚本](kernel_compile/README.md)
+
 # 安装 Archlinux
 
 > 以下均在 arm64 系统下面操作, 比如 archlinuxarm, armbian, raspbian 等等
