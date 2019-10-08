@@ -1,4 +1,4 @@
-# 用 N1 自动编译 Kernel 并推送到消息 telegram 的机器人
+# 用 N1 自动编译 Kernel 并推送消息到 telegram 的机器人
 
 ## 准备PKGBUILD
 
