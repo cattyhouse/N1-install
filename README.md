@@ -2,6 +2,13 @@
 
 [自己做的一个简单的自动编译的脚本](kernel_compile/README.md)
 
+# 准备一个 armbian 启动盘
+> 对于首次安装的人来说可能没有 archlinux 的环境, 那么我们需要准备一个armbian启动盘
+
+> 然后从 **宿主是其他 arm64 系统** 开始
+
+- 下载img https://disk.yandex.ru/d/srrtn6kpnsKz2/Linux/ARMBIAN/5.98
+- dd if=xxxxx.img of=/dev/sdx (sdx 为u盘的设备名, 千万要仔细确认)
 # 安装 Archlinux
 
 > 以下均在 arm64 系统下面操作, 比如 archlinuxarm, armbian, raspbian 等等
