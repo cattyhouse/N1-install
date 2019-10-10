@@ -471,7 +471,7 @@
     > 必须放到 /etc/sysctl.d/
 
     ```bash
-    cat <<'EOF' > /etc/sysctl.d/sysctl.conf
+    cat <<'EOF' > /etc/sysctl.d/99-custom-sysctl.conf
     net.core.default_qdisc = fq
     net.ipv4.tcp_congestion_control = bbr
     net.ipv4.ip_forward = 1
@@ -511,9 +511,9 @@
 
     # 减少输出到终端的 debug 信息(接显示器的时候)
     echo '# reduce debug message on console when connected to a monitor.
-    kernel.printk = 3 4 1 3' >> /etc/sysctl.d/sysctl.conf
+    kernel.printk = 3 4 1 3' >> /etc/sysctl.d/99-custom-sysctl.conf
 
-    sysctl -p /etc/sysctl.d/sysctl.conf # 立刻生效
+    sysctl -p /etc/sysctl.d/99-custom-sysctl.conf # 立刻生效
     ```
 
 1. 提高文件性能
