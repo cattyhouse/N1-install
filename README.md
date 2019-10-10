@@ -1,7 +1,3 @@
-# 用 N1 自动编译 Kernel 并推送消息到 telegram 的机器人
-
-[自己做的一个简单的自动编译的脚本](kernel_compile/README.md)
-
 # 准备一个 armbian 启动盘
 > 对于首次安装的人来说可能没有 archlinux 的环境, 那么我们需要准备一个armbian启动盘
 
@@ -759,6 +755,10 @@ pacman -U *.pkg.tar.xz
 for item in $(curl -sL https://archlinux.jerryxiao.cc/aarch64/ | grep -E "linux-phicomm-n1-.*-aarch64.pkg.tar.xz" | grep -Ev "sig|git"  | cut -d \" -f2 | xargs); do curl -OL https://archlinux.jerryxiao.cc/aarch64/$item ; done
 pacman -U *.pkg.tar.xz
 ```
+
+## 用 N1 自动编译 Kernel 并推送消息到 telegram 的机器人
+
+[自己做的一个简单的自动编译的脚本](kernel_compile/README.md)
 
 
 
