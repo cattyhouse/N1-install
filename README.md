@@ -143,7 +143,7 @@
     mkdir alarm
     bsdtar -xpf ArchLinuxARM-aarch64-latest.tar.gz -C alarm
     rm alarm/etc/resolv.conf # 删除这个软连接, 它默认是指向一个一个动态文件
-    echo 'nameserver 1.1.1.1' > alarm/etc/resolv.conf # 重新生成此文件, 设置一个DNS
+    cat /etc/resolv.conf > alarm/etc/resolv.conf # 重新生成此文件
     mount --bind alarm alarm # 因为 alarm 不是一个挂载点, 所以需要自己 mount 自己, 否则后面会出错.
     cd alarm
     mount -t proc /proc proc
