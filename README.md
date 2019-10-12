@@ -106,6 +106,7 @@
         arch-chroot /mnt
 
         # 安装 内核
+        echo '104.27.184.124 archlinux.jerryxiao.cc' >> /etc/hosts # 这个域名已经被污染, 我们加入 hosts, 确保正确解析
         for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
 
         pacman -U jerryxiao-keyring-*.pkg.tar.xz
