@@ -1,10 +1,14 @@
 # **准备一个 armbian 启动盘**
-> 对于首次安装的人来说可能没有 archlinux 的环境, 那么我们需要准备一个armbian启动盘
 
-> 然后从 **宿主是其他 arm64 系统** 开始
+> 对于首次安装的人来说可能没有 archlinux 的环境, 那么我们需要准备一个armbian启动盘
 
 - 下载img https://disk.yandex.ru/d/srrtn6kpnsKz2/Linux/ARMBIAN/5.98
 - dd if=xxxxx.img of=/dev/sdx (sdx 为u盘的设备名, 千万要仔细确认)
+- 因为 dd 只会根据 img 所占用的空间给U盘格式化分区, 如果用这个U盘启动N1, 你可以看到根目录剩余空间非常少而无法进行下一步的操作,而U盘会多出来一个未分区的空间
+- 如果你想直接在U盘上操作, 那么需要 fdisk 这个U盘, 将剩余的未分区的空间分出来一个sda3的分区, 在U盘启动N1的状态下, 分区完毕, 重启才可以生效.
+- 然后格式化这个sda3的分区, 并mount到任意文件夹, 然后在这个文件夹下面操作. 
+- 然后从 **宿主是其他 arm64 系统** 开始
+
 # **安装 Archlinux**
 
 > 以下均在 arm64 系统下面操作, 比如 archlinuxarm, armbian, raspbian 等等
