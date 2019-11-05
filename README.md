@@ -593,8 +593,12 @@
 
     ```bash
     pacman -Ss rng-tools
-    vim /etc/conf.d/rngd # 编辑,内容为 
-    RNGD_OPTS="-o /dev/random -r /dev/hwrng -x5" # -x5 表示排除 JITTER Entropy generator, rngd -l 可以看到所有 source
+    vim /etc/conf.d/rngd # 编辑,内容为:
+    RNGD_OPTS="-o /dev/random -r /dev/hwrng -x 5" 
+    # 其中 -x5 表示排除 JITTER Entropy generator, rngd -l 可以看到所有 source, 5为 jitter 的编号
+    # -r 表示从/dev/hwrng生成 entropy
+    # -o 表示喂给 /dev/random
+    # 更新服务
     systemctl disable haveged
     systemctl stop haveged
     systemctl start rngd
