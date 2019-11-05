@@ -589,6 +589,17 @@
     RuntimeMaxUse=100M
     EOF
     ```
+1. 用硬件 RNG 替代 haveged
+
+    ```bash
+    pacman -Ss rng-tools
+    vim /etc/conf.d/rngd # 编辑,内容为 
+    RNGD_OPTS="-o /dev/random -r /dev/hwrng -x5" # -x5 表示排除 JITTER Entropy generator, rngd -l 可以看到所有 source
+    systemctl disable haveged
+    systemctl stop haveged
+    systemctl start rngd
+    systemctl enable rngd
+    ```
 # **题外话**
 
 ## MMC安装之克隆安装
