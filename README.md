@@ -592,7 +592,7 @@
 1. 用硬件 RNG 替代 haveged
 
     ```bash
-    pacman -Ss rng-tools
+    pacman -S rng-tools
     vim /etc/conf.d/rngd # 编辑,内容为:
     RNGD_OPTS="-o /dev/random -r /dev/hwrng -x 5" 
     # 其中 -x5 表示排除 JITTER Entropy generator, rngd -l 可以看到所有 source, 5为 jitter 的编号
