@@ -599,6 +599,8 @@
     systemctl stop haveged
     systemctl start rngd
     systemctl enable rngd
+    # 查看可用的 entropy, 一般在 4000 以上就足够
+    cat /proc/sys/kernel/random/entropy_avail
     ```
 # **题外话**
 
