@@ -27,15 +27,18 @@ curl -s -X POST $URL -d chat_id=$CHAT_ID -d text="$MESSAGE"
 ```bash
 #!/bin/bash
 working_dir="$HOME/linux-phicomm-n1"
-cd ${working_dir}
+curl_cmd='curl -4sL --retry 3 --retry-delay 3'
+
+latest_pkgver=$(${curl_cmd} https://www.kernel.org/releases.json | grep -A1 latest_stable | tail -n1 | tr -d '"' | cut -d \: -f 2 | xargs)
+
 # 先运行一个 if 判断, 如果获取不到 kernel 版本号. 就终止, 并发送消息到 telegram bot
-if [[ -z "$(curl -4sL https://www.kernel.org/releases.json | grep -A1 latest_stable | tail -n1 | tr -d '"' | cut -d \: -f 2 | xargs)" ]];then
+if [[ -z "${latest_pkgver}" ]];then
 echo "$(date) : not able to get kernel version" | tee -a update.log | botmsg > /dev/null 
 exit 0
 fi
+# 获取最新版本号有效, 开始工作
+cd ${working_dir}
 
-# 从 kernel.org 获取最新的内核版本
-latest_pkgver=$(curl -4sL https://www.kernel.org/releases.json | grep -A1 latest_stable | tail -n1 | tr -d '"' | cut -d \: -f 2 | xargs)
 # 从当前的 PKGBUILD 获取当前的 内核版本
 current_pkgver=$(grep -E "^pkgver" PKGBUILD | cut -d "=" -f2)
 
@@ -52,8 +55,8 @@ else
     else
     # 检查到了更新的版本号
     # 获取各自的 md5sum
-	latest_pkgver_md5sum=$(curl -4sL https://cdn.kernel.org/pub/linux/kernel/v5.x/patch-${latest_pkgver}.xz | md5sum | cut -d "-" -f1 | xargs)
-	current_pkgver_md5sum=$(curl -4sL https://cdn.kernel.org/pub/linux/kernel/v5.x/patch-${current_pkgver}.xz | md5sum | cut -d "-" -f1 | xargs)
+	latest_pkgver_md5sum=$(${curl_cmd} https://cdn.kernel.org/pub/linux/kernel/v5.x/patch-${latest_pkgver}.xz | md5sum | cut -d "-" -f1 | xargs)
+	current_pkgver_md5sum=$(${curl_cmd} https://cdn.kernel.org/pub/linux/kernel/v5.x/patch-${current_pkgver}.xz | md5sum | cut -d "-" -f1 | xargs)
         sed -i "s/pkgver=${current_pkgver}/pkgver=${latest_pkgver}/g" PKGBUILD # 更新 PKGBUILD 里面的版本号
         sed -i "s/${current_pkgver_md5sum}/${latest_pkgver_md5sum}/g" PKGBUILD # 更新 md5sum
         sed -i "s/^pkgrel=.\+/pkgrel=1/g" PKGBUILD # 重置自定义的小版本
