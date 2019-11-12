@@ -587,8 +587,8 @@
     ```bash
     pacman -S rng-tools
     vim /etc/conf.d/rngd # 编辑,内容为:
-    RNGD_OPTS="-o /dev/random -r /dev/hwrng -x 5" 
-    # 其中 -x5 表示排除 JITTER Entropy generator, rngd -l 可以看到所有 source, 5为 jitter 的编号
+    RNGD_OPTS="-o /dev/random -r /dev/hwrng -x jitter -x pkcs11" 
+    # 其中 -x 表示排除, man rngd 可以查询所有 source 的名称，这里我们只用 hwrng 这个 source
     # -r 表示从/dev/hwrng生成 entropy
     # -o 表示喂给 /dev/random
     # 更新服务
@@ -596,7 +596,7 @@
     systemctl stop haveged
     systemctl start rngd
     systemctl enable rngd
-    # 查看可用的 entropy, 一般在 4000 以上就足够
+    # 查看可用的 entropy, 一般在 4000 左右
     cat /proc/sys/kernel/random/entropy_avail
     ```
 # **题外话**
