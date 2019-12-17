@@ -461,7 +461,7 @@
     vim /etc/default/cpupower # 设置 governor='ondemand', min_freq="500MHz" , max_freq="2GHz"
     systemctl start cpupower.service
     systemctl enable cpupower.service
-    while true ; do sleep 2 ; cpupower -c all frequency-info | grep -E "current CPU" | cut -d " " -f 5-7 ; echo ; done # 观察变频是否工作
+    while true ; do cpupower -c all frequency-info --hwfreq --human | grep -E 'current CPU frequency' ; echo ; sleep 3 ; done # 观察变频是否工作, 需要用 root 运行才准确.
     ```
 
 1. 提高网络性能
