@@ -113,6 +113,8 @@
         arch-chroot /mnt
 
         # 安装 内核
+        
+        ## 可选 1: Jerry 的内核
         # 这个域名已经被污染, 我们加入 hosts, 确保正确解析
         # 如果你很有信心已经解决了 DNS 污染, 可以不用加入 hosts
         echo '104.27.184.124 archlinux.jerryxiao.cc' >> /etc/hosts 
@@ -125,6 +127,10 @@
         Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
 
         pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
+
+        ## 可选 2: 我定制的内核
+        # 我写的自动编译脚本, cron定时运行, 发现 kernel.org 有新版本就自动编译并上传到如下网址
+        https://kr1.us.to/kernel/readme.txt
         ```
 
 1. **宿主是其他 arm64 系统**, 比如 armbian, raspbian 等
@@ -540,18 +546,7 @@
     > 我推荐 [zimfw](https://github.com/zimfw/zimfw)
     ```bash
     pacman -S zsh # 安装 zsh
-    zsh # 运行一次 zsh
-    git clone --recursive https://github.com/zimfw/zimfw.git ${ZDOTDIR:-${HOME}}/.zim # 克隆 zsh 插件
-
-    # 生成必要文件
-    for template_file in ${ZDOTDIR:-${HOME}}/.zim/templates/*; do
-    user_file="${ZDOTDIR:-${HOME}}/.${template_file:t}"
-    cat ${template_file} ${user_file}(.N) > ${user_file}.tmp && mv ${user_file}{.tmp,}
-    done
-
-    # 默认启动到zsh
-    chsh -s =zsh
-    source ${ZDOTDIR:-${HOME}}/.zlogin
+    # 配置步骤作者写的很详细, 参见上面的 zimfw 的链接.
     ```
 
 1. 更新一下系统
