@@ -444,6 +444,18 @@
     unset LANG && source /etc/profile.d/locale.sh  # 立刻生效
     ```
 
+    > notes: 让终端显示 24 小时
+        
+    ```bash
+    # 1. 本机设置 LC_TIME=en_GB.UTF-8
+        localectl set-locale en_US.UTF-8
+        localectl set-locale LC_TIME=en_GB.UTF-8
+
+    # 2. 通常 ssh 都有设置 SendEnv LANG 和 AcceptEnv LANG, 那么从比如 macOS 上 ssh 过去的话, 本机的 locale 会被临时覆盖, 所以这种情况, 我们在 macOS 上设置为英国的时间显示方式
+        vim ~/.alias 
+        export LANG=en_GB.UTF-8
+    ``` 
+
 1. 时间同步
 
     ```bash
