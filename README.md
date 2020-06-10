@@ -435,11 +435,11 @@
 1. 语言
 
     ```bash
-    echo 'en_US.UTF-8 UTF-8
+    echo 'en_GB.UTF-8 UTF-8
     zh_CN.UTF-8 UTF-8' >> /etc/locale.gen
 
     locale-gen # 可能需要蛮久 
-    localectl set-locale en_US.UTF-8 # 设置系统级别的语言
+    localectl set-locale en_GB.UTF-8 # 设置系统级别的语言, GB 可以显示 24h, US 是 12h
     mkdir -p ~/.config && echo 'LANG=zh_CN.UTF-8' > ~/.config/locale.conf # 设置单个用户的语言(优先级更高)
     unset LANG && source /etc/profile.d/locale.sh  # 立刻生效
     ```
@@ -448,8 +448,8 @@
         
     ```bash
     # 1. 本机设置 LC_TIME=en_GB.UTF-8
-        localectl set-locale en_US.UTF-8
-        localectl set-locale LC_TIME=en_GB.UTF-8
+        localectl set-locale en_GB.UTF-8
+        localectl set-locale LC_ALL=en_GB.UTF-8
 
     # 2. 通常 ssh 都有设置 SendEnv LANG 和 AcceptEnv LANG, 那么从比如 macOS 上 ssh 过去的话, 本机的 locale 会被临时覆盖, 所以这种情况, 我们在 macOS 上设置为英国的时间显示方式
         vim ~/.alias 
