@@ -474,8 +474,7 @@
     ```bash
     pacman -S cpupower
     vim /etc/default/cpupower # 设置 governor='ondemand', min_freq="500MHz" , max_freq="2GHz"
-    systemctl start cpupower.service
-    systemctl enable cpupower.service
+    systemctl enable --now cpupower.service
     while true ; do cpupower -c all frequency-info --hwfreq --human | grep -E 'current CPU frequency' ; echo ; sleep 3 ; done # 观察变频是否工作, 需要用 root 运行才准确.
     ```
 
@@ -596,10 +595,8 @@
     # -r 表示从/dev/hwrng生成 entropy
     # -o 表示喂给 /dev/random
     # 更新服务
-    systemctl disable haveged
-    systemctl stop haveged
-    systemctl start rngd
-    systemctl enable rngd
+    systemctl disable --now haveged
+    systemctl enable --now rngd
     # 查看可用的 entropy, 一般在 4000 左右
     cat /proc/sys/kernel/random/entropy_avail
     ```
