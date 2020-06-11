@@ -592,7 +592,7 @@
     vim /etc/conf.d/rngd # 编辑,内容为:
     RNGD_OPTS="-o /dev/random -r /dev/hwrng -x jitter -x pkcs11 -x rtlsdr" 
     # 其中 -x 表示排除, man rngd 可以查询所有 source 的名称，这里我们只用 hwrng 这个 source
-    # -r 表示从/dev/hwrng生成 entropy
+    # -r 表示从/dev/hwrng 生成 entropy
     # -o 表示喂给 /dev/random
     # 更新服务
     systemctl disable --now haveged
