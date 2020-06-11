@@ -128,9 +128,6 @@
 
         pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
 
-        ## 可选 2: 我定制的内核
-        # 我写的自动编译脚本, cron定时运行, 发现 kernel.org 有新版本就自动编译并上传到如下网址
-        https://kr1.us.to/kernel/readme.txt
         ```
 
 1. **宿主是其他 arm64 系统**, 比如 armbian, raspbian 等
