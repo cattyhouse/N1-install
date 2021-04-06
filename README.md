@@ -60,7 +60,9 @@
 
         1. 对于安装到MMC来说, 分区和格式化以及挂载
 
-            > MMC的设备名是 **/dev/mmcblk1**
+            > MMC的设备名是: 
+            
+            运行 `lsblk -f | grep -Eo "(^| )mmcblk.( |$)"`, 比如得到的是 mmcblk1, 那么设备名就是 /dev/mmcblk1 
 
             > 分区必须严格按照下面的格式
 
@@ -113,20 +115,7 @@
         arch-chroot /mnt
 
         # 安装 内核
-        
-        ## 可选 1: Jerry 的内核
-        # 这个域名已经被污染, 我们加入 hosts, 确保正确解析
-        # 如果你很有信心已经解决了 DNS 污染, 可以不用加入 hosts
-        echo '104.27.184.124 archlinux.jerryxiao.cc' >> /etc/hosts 
-        for item in $(curl -sL https://archlinux.jerryxiao.cc/any | grep keyring | grep -v sig | cut -d  \" -f2 |xargs); do curl -OL https://archlinux.jerryxiao.cc/any/$item ; done
-
-        pacman -U jerryxiao-keyring-*.pkg.tar.xz
-        rm jerryxiao-keyring-*.pkg.tar.xz
-        
-        echo '[jerryxiao]
-        Server = https://archlinux.jerryxiao.cc/$arch' >> /etc/pacman.conf
-
-        pacman -Sy linux-phicomm-n1 linux-phicomm-n1-headers
+        参考: https://github.com/cattyhouse/new-uboot-for-N1
 
         ```
 
@@ -174,143 +163,27 @@
 
 1. 确保可以打印和写入uboot env (uboot 环境变量)
 
-    1. 生成配置文件
+    - 生成配置文件
 
         ```bash
         echo '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config
         ```
-    1. 打印 uboot env (**需要在N1本机上操作**)
+        注意 mmcblk1 是根据前文提到的命令获取的, 此处只是举例, 以获取为准.
+
+    - 打印 uboot env (**需要在N1本机上操作**)
 
         ```bash
         fw_printenv # 执行一下看是否可以成功输出 uboot env
         ```
-    1. 写入 uboot env (**需要在N1本机上操作**)
+    - 写入 uboot env (**需要在N1本机上操作**)
 
         ```bash
         fw_setenv # 后面会用到, 现在不需要执行.
         ```
+2. 外挂 主线 uboot
 
-1. 创建 uEnv.ini
+    - 参考: https://github.com/cattyhouse/new-uboot-for-N1
 
-    ```bash
-    lsblk -f # 找到 `sda2 或者 mmcblk1p2` 的 `UUID`
-    uuidgen | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/' # 生成 eth0 的 MAC 地址
-    # 将生成的信息填入下面, 创建 uEnv.ini
-
-    echo 'dtb_name=/dtb.img
-    bootargs=root=UUID=找到的root分区的UUID rootflags=data=writeback rw console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0
-    ethaddr=生成的MAC地址' > /boot/uEnv.ini
-    ```
-
-1. 设置uboot env脚本
-
-    > 以下代码里面有变量, 所以 cat 'EOF' 必须用单引号, 
-    > 而且所有的内容都是单引号, 否则会被 shell 和 uboot 展开, 造成各种问题. 
-
-    > 文件 aml_autoscript.cmd aml_autoscript.zip s905_autoscript.cmd  emmc_autoscript.cmd 均来自大神 150balbes 的 [armbian](https://disk.yandex.ru/d/srrtn6kpnsKz2).
-
-    1. aml_autoscript.cmd 和 aml_autoscript.zip
-
-        ```bash
-        cd /boot && curl -OL https://raw.githubusercontent.com/cattyhouse/N1-install/master/aml_autoscript.zip
-
-        cat <<'EOF' > /boot/aml_autoscript.cmd
-        defenv
-        setenv bootcmd 'run start_autoscript; run storeboot;'
-        setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
-        setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
-        setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
-        setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done'
-        setenv upgrade_step 2
-        saveenv
-        sleep 1
-        reboot
-        EOF
-        ```
-
-    1. s905_autoscript.cmd
-
-        ```bash
-        cat <<'EOF' > /boot/s905_autoscript.cmd
-        if fatload mmc 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
-        if fatload usb 0 0x11000000 boot_android; then if test ${ab} = 0; then setenv ab 1; saveenv; exit; else setenv ab 0; saveenv; fi; fi;
-        setenv env_addr 0x10400000
-        setenv kernel_addr 0x11000000
-        setenv initrd_addr 0x13000000
-        setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
-        setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
-        setenv try_boot_start 'if fatload ${devtype} ${devnum} ${kernel_addr} zImage; then if fatload ${devtype} ${devnum} ${initrd_addr} uInitrd; then fatload ${devtype} ${devnum} ${env_addr} uEnv.ini && env import -t ${env_addr} ${filesize} && run addmac; fatload ${devtype} ${devnum} ${dtb_mem_addr} ${dtb_name} && run boot_start; fi; fi;'
-        setenv devtype mmc
-        setenv devnum 0
-        run try_boot_start
-        setenv devtype usb
-        for devnum in 0 1 2 3 ; do run try_boot_start ; done
-        EOF
-        ```
-
-    1. emmc_autoscript.cmd
-
-        ```bash
-        cat <<'EOF' > /boot/emmc_autoscript.cmd
-        setenv env_addr 0x10400000
-        setenv kernel_addr 0x11000000
-        setenv initrd_addr 0x13000000
-        setenv dtb_mem_addr 0x1000000
-        setenv boot_start booti ${kernel_addr} ${initrd_addr} ${dtb_mem_addr}
-        setenv addmac 'if printenv mac; then setenv bootargs ${bootargs} mac=${mac}; elif printenv eth_mac; then setenv bootargs ${bootargs} mac=${eth_mac}; fi'
-        if fatload mmc 1 ${kernel_addr} zImage; then if fatload mmc 1 ${initrd_addr} uInitrd; then if fatload mmc 1 ${env_addr} uEnv.ini; then env import -t ${env_addr} ${filesize}; run addmac; fi; if fatload mmc 1 ${dtb_mem_addr} ${dtb_name}; then run boot_start;fi;fi;fi;
-        EOF
-        ```
-
-    1. 生成二进制文件
-
-        ```bash
-        cd /boot
-        mkimage -C none -A arm -T script -d aml_autoscript.cmd aml_autoscript
-        mkimage -C none -A arm -T script -d s905_autoscript.cmd s905_autoscript
-        mkimage -C none -A arm -T script -d emmc_autoscript.cmd emmc_autoscript
-        # s905_autoscript用于启动U盘或者安卓系统 
-        # emmc_autoscript 用于启动 mmc. 
-        # aml_autoscript 在uboot执行update的时候运行 (adb shell reboot update 之后)
-        ```
-
-    1. 同步 aml_autoscript 的内容 (**需要在N1本机上操作**)
-
-        > 上面提到过, aml_autoscript 的执行需要特殊环境, 此目的是确保当前的 uboot 环境就像是运行过 aml_autoscript 一样
-
-        ```bash
-        fw_setenv bootcmd 'run start_autoscript; run storeboot;'
-        fw_setenv start_autoscript 'if mmcinfo; then run start_mmc_autoscript; fi; if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript'
-        fw_setenv start_emmc_autoscript 'if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;'
-        fw_setenv start_mmc_autoscript 'if fatload mmc 0 1020000 s905_autoscript; then autoscr 1020000; fi;'
-        fw_setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done'
-        ```
-
-    1. 补充额外的 env (**需要在N1本机上操作**)
-
-        > 补充因刷机丢失的 env 
-
-        ```bash
-        cat <<'EOF' > ~/add_env
-        fw_setenv bootargs 'rootfstype=ramfs init=/init console=ttyS0,115200 no_console_suspend earlyprintk=aml-uart,0xc81004c0 ramoops.pstore_en=1 ramoops.record_size=0x8000 ramoops.console_size=0x4000 androidboot.selinux=enforcing logo=osd1,loaded,0x3d800000,576cvbs maxcpus=4 vout=576cvbs,enable hdmimode=1080p60hz cvbsmode=576cvbs hdmitx= cvbsdrv=0 pq= androidboot.firstboot=0 androidboot.factorystep=2 jtag=apao androidboot.hardware=amlogic androidboot.serialno=CAQDB3075K26485 mac=00:00:00:00:00:00 androidboot.mac=00:00:00:00:00:00 mac_wifi=00:00:00:00:00:00 androidboot.mac_wifi=00:00:00:00:00:00 androidboot.slot_suffix=_a quiet aml_dt=gxl_p230_2g recovery_part={recovery_part} recovery_offset={recovery_offset} aml_dt=gxl_p230_2g recovery_part={recovery_part} recovery_offset={recovery_offset}'
-        fw_setenv bootup_offset '0x1130180'
-        fw_setenv bootup_size '0x3f4846'
-        fw_setenv ethact 'dwmac.c9410000'
-        fw_setenv mac '00:00:00:00:00:00'
-        fw_setenv mac_wifi '00:00:00:00:00:00'
-        fw_setenv maxcpus 4
-        fw_setenv reboot_mode 'watchdog_reboot'
-        fw_setenv serial 'CAQDB3075K26485'
-        fw_setenv stderr 'serial'
-        fw_setenv stdin 'serial'
-        fw_setenv stdout 'serial'
-        fw_setenv usid 'CAQDB3075K26485'
-        EOF
-
-        sed -i "s/00:00:00:00:00:00/$(uuidgen | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/')/g" ~/add_env
-        bash ~/add_env
-
-        ```
 ## 收尾工作
 
 1. 安装必要的软件并开机启动
@@ -647,6 +520,8 @@
     ```
 
 1. 修改 *`~/n1/linux-aarch64/PKGBUILD`*
+
+注意, 用了 新版本的 uboot 后, TEXT_OFFSET 相关的 patch 可以不用了.
 
     1. 在 **`cat "${srcdir}/config" > ./.config`** 后面插入
     
