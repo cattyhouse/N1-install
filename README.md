@@ -12,7 +12,7 @@
 1. 克隆到 mmc
 
 # 所需资源
-1. 1个 N1, 自带 armbian 或者 任意其他的 aarch64 linux 系统
+1. 1个 N1, 自带 armbian 或者 任意其他的 aarch64 linux 系统, 以下均在 N1上操作.
 2. 4GB 以上的 U盘
 3. 网络
 
@@ -74,21 +74,29 @@ export PS1="(chroot) $PS1" # 做个标记, 提醒你在 chroot 下面
 > 清理一下 userspace
 
 ```sh
-# locale
 echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 echo 'en_GB.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen
 localectl list-locales # 列出 locale-gen 生成的 locales
 localectl set-locale en_US.UTF-8 # 设置为 英文美国
+
 passwd root # 设置下 root 密码, 输入不会显示
+echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config # 允许ssh密码登陆root账户, 出于安全考虑, 建议启动 N1 后,删除这条,采用 ssh key 登陆
 userdel -rf alarm # 删除这个用户, 只留下 root
 ```
 > 设置一下网络
 ```sh
 systemctl is-enabled systemd-networkd.service # 确保这个服务已经设置为开机启动
 systemctl enable systemd-networkd.service # 如果上面提示没有启动, 就启动它
-cat /etc/systemd/network/eth.network # 检查网络设置, 默认为 dhcp
 systemctl disable --now systemd-resolved.service # 关掉这个服务, 我们已经自行设置 /etc/resolv.conf
+cat /etc/systemd/network/eth.network # 检查网络设置, 默认为 dhcp
+
+# 设置网卡地址
+text=whatever # whatever 可以替换成任意字符
+macaddr=$(echo $text | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/')
+echo "[Link]" >> /etc/systemd/network/eth.network
+echo "MACAddress=${macaddr}" >> /etc/systemd/network/eth.network
+unset text macaddr
 ```
 > 
 # 安装 kernel
@@ -109,6 +117,7 @@ ver=$(curl -s https://kr1.us.to/kernel/ | grep "linux-phicomm-n1-headers.*pkg.ta
 curl -OL https://kr1.us.to/kernel/linux-phicomm-n1-${ver}-1-aarch64.pkg.tar.xz # 下载 kernel
 curl -OL https://kr1.us.to/kernel/linux-phicomm-n1-headers-${ver}-1-aarch64.pkg.tar.xz # 下载 headers
 pacman -U *.pkg.tar.xz # 安装
+sync # 确保文件写入
 unset ver # 清理
 ```
 # 挂载 u-boot
@@ -161,15 +170,20 @@ unset ver # 清理
 ```sh
 exit # 退出 chroot 环境
 cd / # 确保所有的窗口不占用 /mnt
-sudo umount -fR /mnt
+sudo umount -fR /mnt # target is busy 的错误可以忽略
 sudo reboot # 祝您好运.
 ```
+> 登陆
 ```sh
-TODO
+# 从路由器找到 N1 的 ip, 通过 ssh 登陆
+ssh root@n1_ip # 然后输入密码
+# 如果接显示器和键盘的话, 直接登陆.
+
+# TODO
 ```
 
 # 克隆到 MMC
 > rsync 可以完美做到 100% 克隆
 ```sh
-TODO
+# TODO
 ```
