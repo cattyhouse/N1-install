@@ -11,7 +11,8 @@
 1. 克隆到 mmc
 
 # 所需资源
-1. 任意 aarch64 的 linux 系统 (或者x86_64的系统, 但后面用到的 chroot 方面需要用到 qemu-user-static 和 binfmt-qemu-static 这两个包, [参考](https://unix.stackexchange.com/questions/41889/how-can-i-chroot-into-a-filesystem-with-a-different-architechture))
+1. 任意 aarch64 的 linux 系统
+    > 如果采用 x86_64 系统的话, 后面用到的 chroot 方面需要用到 qemu-user-static 和 binfmt-qemu-static 这两个包. 具体方法 [参考这个](https://unix.stackexchange.com/questions/41889/how-can-i-chroot-into-a-filesystem-with-a-different-architechture). aarch64系统 请忽略这个.
 2. 4GB 以上的 U盘
 3. 网络
 
