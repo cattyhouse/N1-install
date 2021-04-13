@@ -358,8 +358,9 @@
 
     ```bash
     cat <<'EOF' > /etc/sysctl.d/99-custom-sysctl.conf
-    net.core.default_qdisc = fq
-    net.ipv4.tcp_congestion_control = bbr
+    # 本地不需要开 bbr, 容易让局域网设备之间网速变慢. 只需要在服务器上面开. 
+	#net.core.default_qdisc = fq
+    #net.ipv4.tcp_congestion_control = bbr
     net.ipv4.ip_forward = 1
     net.core.somaxconn = 2048
     net.core.rmem_default = 1048576
