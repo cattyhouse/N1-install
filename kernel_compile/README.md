@@ -12,14 +12,24 @@ mkdir -p ~/linux-phicomm-n1/binary
 
 ```bash
 #!/bin/bash
-# /usr/bin/botmsg
-
-TOKEN='xxxxxxxxxxxxxxxx'
-CHAT_ID='xxxxxxxx'
-[ $# -ge 1 ] && MESSAGE="$*" || MESSAGE="$(cat -)" 
-# 如果参数大于等于1, 那么发送的消息即为参数, 如果参数小于1, 也就是参数为空, 那么从管道读取
+TOKEN='xxxxxxxxxxxxxxxxxxxxxxx'
+CHAT_ID='xxxxxxxxx'
 URL="https://api.telegram.org/bot$TOKEN/sendMessage"
-curl -s -X POST $URL -d chat_id=$CHAT_ID -d text="$MESSAGE"
+
+if [[ $# -eq 0 ]] ; then
+MESSAGE="$(hostname -s) :
+$(cat -)"
+else
+MESSAGE="$(hostname -s) :
+$*"
+fi
+
+curl --retry 3 \
+--retry-delay 1 \
+--connect-timeout 3 \
+--silent \
+--data-urlencode chat_id="$CHAT_ID" \
+--data-urlencode text="$MESSAGE" "$URL" &>/dev/null
 ```
 
 ## 自动检查更新并编译的脚本, 命名为 update.sh, 并且放到 linux-phicomm-n1 文件夹
