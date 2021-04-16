@@ -12,6 +12,7 @@ mkdir -p ~/linux-phicomm-n1/binary
 
 ```bash
 #!/bin/bash
+#/usr/local/bin/botmsg
 TOKEN='xxxxxxxxxxxxxxxxxxxxxxx'
 CHAT_ID='xxxxxxxxx'
 URL="https://api.telegram.org/bot$TOKEN/sendMessage"
