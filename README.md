@@ -13,28 +13,28 @@
 
 # 所需资源
 1. 1个 N1, 自带 armbian 或者 任意其他的 aarch64 linux 系统, 以下均在 N1上操作.
-2. 4GB 以上的 U盘
-3. 网络
+1. 4GB 以上的 U盘
+1. 网络
 
 # 分区
 >这里暂时只考虑安装到U盘, 后面再讨论如何克隆到内置的 mmc. 
 1. 确认 U盘 设备名
     ```sh
-    sudo parted --list 2>/dev/null | grep "/dev/sd.*"
+    sudo lsblk -f /dev/sd[a-z]
     ```
 1. 用 parted 分区
-    > 假设上面找到的 U盘为 **/dev/sda(再三确认)**, 将U盘设置为 mbr 分区表, 分为2个区, 第一个为 FAT32 类型, 容量为 128MB, 第二个为 linux 类型, 容量为剩余所有.  
+    > 假设上面找到的 U盘为 **/dev/sda(再三确认)**, 将U盘设置为 mbr 分区表, 分为2个区, 第一个为 FAT32 类型, 容量为 256MB, 第二个为 linux 类型, 容量为剩余所有.  
     ```sh
-    sudo parted -s -a optimal /dev/sda mklabel msdos mkpart primary fat32 0% 128MiB mkpart primary ext4 128MiB 100%
+    sudo parted -s -a optimal /dev/sda mklabel msdos mkpart primary fat32 0% 256MiB mkpart primary ext4 256MiB 100%
     ```
     
-2. 格式化分区
+1. 格式化分区
     > 将分区1格式化为 FAT32, 取名 ARCHBOOT ; 将分区2格式化为 EXT4 取名 ARCHROOT.
     ```sh
     sudo mkfs.vfat -F 32 -n ARCHBOOT /dev/sda1
     sudo mkfs.ext4 -L ARCHROOT /dev/sda2
     ```
-3. 挂载分区
+1. 挂载分区
     > 将 sda2 挂载到 /mnt, 将 sda1 挂载到 /mnt/boot
     ```sh
     sudo mount /dev/sda2 /mnt
@@ -66,7 +66,6 @@ sudo mount --make-rslave --rbind /run run
 cd /
 sudo chroot /mnt /bin/bash
 source /etc/profile
-source ~/.bashrc # 如果提示无此文件, 并没有关系.
 export PS1="(chroot) $PS1" # 做个标记, 提醒你在 chroot 下面 
 
 # 此时就已经进入了 chroot 环境, 以下步骤均在 chroot下进行
@@ -86,9 +85,8 @@ userdel -rf alarm # 删除这个用户, 只留下 root
 ```
 > 设置一下网络
 ```sh
-systemctl is-enabled systemd-networkd.service # 确保这个服务已经设置为开机启动
 systemctl enable systemd-networkd.service # 如果上面提示没有启动, 就启动它
-systemctl disable --now systemd-resolved.service # 关掉这个服务, 我们已经自行设置 /etc/resolv.conf
+systemctl disable systemd-resolved.service # 关掉这个服务, 我们已经自行设置 /etc/resolv.conf
 cat /etc/systemd/network/eth.network # 检查网络设置, 默认为 dhcp
 
 # 设置网卡地址
@@ -143,7 +141,7 @@ unset ver # 清理
 1. 设置 extlinux.conf
 
     ```sh
-    root_uuid=$(lsblk -f  | grep sda2 | xargs | cut -d ' ' -f5)
+    root_uuid=$(lsblk -n -o UUID /dev/sda2)
     sed -i "s/root_uuid/${root_uuid}/" /boot/extlinux/extlinux.conf
     # 确认一下修改是否成功
     grep UUID /boot/extlinux/extlinux.conf
@@ -152,8 +150,8 @@ unset ver # 清理
     ```
 1. 设置 fstab
     ```sh
-    root_uuid=$(lsblk -f | grep sda2 | xargs | cut -d ' ' -f5)
-    boot_uuid=$(lsblk -f | grep sda1 | xargs | cut -d ' ' -f5)
+    root_uuid=$(lsblk -n -o UUID /dev/sda2)
+    boot_uuid=$(lsblk -n -o UUID /dev/sda1)
 
     echo "# /dev/sda2" >> /etc/fstab
     echo "UUID=${root_uuid} / ext4 rw,relatime 0 1" >> /etc/fstab
@@ -170,7 +168,7 @@ unset ver # 清理
 ```sh
 exit # 退出 chroot 环境
 cd / # 确保所有的窗口不占用 /mnt
-sudo umount -fR /mnt # target is busy 的错误可以忽略
+sudo umount -vfR /mnt # target is busy 的错误可以忽略
 sudo reboot # 祝您好运.
 ```
 > 登陆
