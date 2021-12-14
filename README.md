@@ -113,10 +113,10 @@ pacman -Rcsun linux-aarch64 # 删除官方的 kernel
 pacman -Rcsun linux-aarch64-headers # 删除官方的 headers, 如果存在的话. 
 
 cd /tmp
-ver=$(curl -s https://kr1.us.to/kernel/ | grep "linux-phicomm-n1-headers.*pkg.tar.xz" | cut -d \" -f2 | sort -rV | head -n1 | cut -d \- -f5) # 找到最新的 kernel 版本
-curl -OL https://kr1.us.to/kernel/linux-phicomm-n1-${ver}-1-aarch64.pkg.tar.xz # 下载 kernel
-curl -OL https://kr1.us.to/kernel/linux-phicomm-n1-headers-${ver}-1-aarch64.pkg.tar.xz # 下载 headers
-pacman -U *.pkg.tar.xz # 安装
+ver=$(curl -s https://kr1.us.to/kernel/ | grep "linux-phicomm-n1-headers.*pkg.tar.zst" | cut -d \" -f2 | sort -rV | head -n1 | cut -d \- -f5) # 找到最新的 kernel 版本
+curl -OL https://kr1.us.to/kernel/linux-phicomm-n1-${ver}-1-aarch64.pkg.tar.zst # 下载 kernel
+curl -OL https://kr1.us.to/kernel/linux-phicomm-n1-headers-${ver}-1-aarch64.pkg.tar.zst # 下载 headers
+pacman -U *.pkg.tar.zst # 安装
 sync # 确保文件写入
 unset ver # 清理
 ```
