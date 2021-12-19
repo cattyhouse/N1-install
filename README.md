@@ -47,8 +47,8 @@
 > userspace 就是除了内核之外的其他的东西, archlinuxarm 有提供
 
 ```sh
-cd ~ && curl -OL http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-sudo bsdtar -xpvf ArchLinuxARM-aarch64-latest.tar.gz -C /mnt/ # 解压, 比较耗时间, 可以打一局游戏去.
+cd ~ && curl -L -O http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
+sudo bsdtar -xpvf ArchLinuxARM-aarch64-latest.tar.gz -C /mnt # 解压, 比较耗时间, 可以打一局游戏去.
 rm -f ArchLinuxARM-aarch64-latest.tar.gz # 阅后即焚
 ```
 > chroot 到 userspace
@@ -77,7 +77,7 @@ echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
 echo 'en_GB.UTF-8 UTF-8' >> /etc/locale.gen
 locale-gen
 localectl list-locales # 列出 locale-gen 生成的 locales
-localectl set-locale en_US.UTF-8 # 设置为 英文美国
+localectl set-locale LANG=en_US.UTF-8 LC_TIME=en_GB.UTF-8 # 语言为美国格式, 时间为英国格式(默认显示24小时时间)
 
 passwd root # 设置下 root 密码, 输入不会显示
 echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config # 允许ssh密码登陆root账户, 出于安全考虑, 建议启动 N1 后,删除这条,采用 ssh key 登陆
@@ -88,13 +88,6 @@ userdel -rf alarm # 删除这个用户, 只留下 root
 systemctl enable systemd-networkd.service # 如果上面提示没有启动, 就启动它
 systemctl disable systemd-resolved.service # 关掉这个服务, 我们已经自行设置 /etc/resolv.conf
 cat /etc/systemd/network/eth.network # 检查网络设置, 默认为 dhcp
-
-# 设置网卡地址
-text=whatever # whatever 可以替换成任意字符
-macaddr=$(echo $text | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/02:\1:\2:\3:\4:\5/')
-echo "[Link]" >> /etc/systemd/network/eth.network
-echo "MACAddress=${macaddr}" >> /etc/systemd/network/eth.network
-unset text macaddr
 ```
 > 
 # 安装 kernel
@@ -112,13 +105,12 @@ pacman -Rcsun linux-aarch64-headers # 删除官方的 headers, 如果存在的�
 
 cd /tmp
 ver=$(curl -s https://kr1.us.to/kernel/ | grep "linux-phicomm-n1-headers.*pkg.tar.zst" | cut -d \" -f2 | sort -rV | head -n1 | cut -d \- -f5) # 找到最新的 kernel 版本
-curl -OL https://kr1.us.to/kernel/linux-phicomm-n1-${ver}-1-aarch64.pkg.tar.zst # 下载 kernel
-curl -OL https://kr1.us.to/kernel/linux-phicomm-n1-headers-${ver}-1-aarch64.pkg.tar.zst # 下载 headers
+curl -O https://kr1.us.to/kernel/linux-phicomm-n1-${ver}-1-aarch64.pkg.tar.zst # 下载 kernel
+curl -O https://kr1.us.to/kernel/linux-phicomm-n1-headers-${ver}-1-aarch64.pkg.tar.zst # 下载 headers
 pacman -U *.pkg.tar.zst # 安装
-sync # 确保文件写入
-unset ver # 清理
+sync
 ```
-# 挂载 u-boot
+# 挂载新版 u-boot
 
 >N1 系统自带了 u-boot, 但是只能启动打了 TEXT_OFFSET 补丁的内核, 所以为了启动一个原生的内核, 需要挂载新版本的 u-boot, 所有脚本已经写好, 只需复制到 boot 分区, N1 就可以用自身的 u-boot, 挂载这个新的 u-boot
 
@@ -133,8 +125,8 @@ unset ver # 清理
 1. 下载文件
     ```sh
     ping -c 3 www.163.com # 确保网络 OK
-    pacman -S git
-    cd /tmp && git clone https://github.com/cattyhouse/new-uboot-for-N1
+    pacman -S --needed --noconfirm git
+    cd /tmp && git clone --depth 1 https://github.com/cattyhouse/new-uboot-for-N1
     cd new-uboot-for-N1
     cp -fr * /boot/
     ```
@@ -144,24 +136,16 @@ unset ver # 清理
     root_uuid=$(lsblk -n -o UUID /dev/sda2)
     sed -i "s/root_uuid/${root_uuid}/" /boot/extlinux/extlinux.conf
     # 确认一下修改是否成功
-    grep UUID /boot/extlinux/extlinux.conf
-    # 清理一下
-    rm /boot/README.md
+    grep ${root_uuid} /boot/extlinux/extlinux.conf
     ```
 1. 设置 fstab
     ```sh
     root_uuid=$(lsblk -n -o UUID /dev/sda2)
     boot_uuid=$(lsblk -n -o UUID /dev/sda1)
-
-    echo "# /dev/sda2" >> /etc/fstab
-    echo "UUID=${root_uuid} / ext4 rw,relatime 0 1" >> /etc/fstab
-
-    echo "# /dev/sda1" >> /etc/fstab
+    echo "UUID=${root_uuid} / ext4 rw,relatime 0 1" > /etc/fstab
     echo "UUID=${boot_uuid} /boot vfat rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro 0 2" >> /etc/fstab
-
     cat /etc/fstab # 检查一下
     ```
-
 
 # 基本设置
 > 重启
