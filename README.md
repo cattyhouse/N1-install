@@ -91,7 +91,7 @@ cat /etc/systemd/network/eth.network # 检查网络设置, 默认为 dhcp
 ```
 > 
 # 安装 kernel
-> kernel 是我编译的, 删减了 N1 上没有的东西, 比如 PCIE 等. 
+
 ```sh
 ping -c 3 www.163.com # 确保网络 OK 
 
@@ -103,10 +103,9 @@ pacman -Q | grep linux-aarch64 # 看看是否有安装官方的 kernel
 pacman -Rcsun linux-aarch64 # 删除官方的 kernel
 pacman -Rcsun linux-aarch64-headers # 删除官方的 headers, 如果存在的话. 
 
-cd /tmp
-ver=$(curl -s https://kr1.us.to/kernel/ | grep "linux-phicomm-n1-headers.*pkg.tar.zst" | cut -d \" -f2 | sort -rV | head -n1 | cut -d \- -f5) # 找到最新的 kernel 版本
-curl -O https://kr1.us.to/kernel/linux-phicomm-n1-${ver}-1-aarch64.pkg.tar.zst # 下载 kernel
-curl -O https://kr1.us.to/kernel/linux-phicomm-n1-headers-${ver}-1-aarch64.pkg.tar.zst # 下载 headers
+自行编译内核:
+https://github.com/cattyhouse/pkgbuild-linux-phicomm-n1
+
 pacman -U *.pkg.tar.zst # 安装
 sync
 ```
