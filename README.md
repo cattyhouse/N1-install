@@ -6,7 +6,7 @@
 1. 所需资源
 1. 分区
 1. 安装 userspace
-1. 安装 kernel
+1. 安装 kernel 和 dtb
 1. 挂载 u-boot
 1. 基本设置
 1. 克隆到 mmc
@@ -90,25 +90,26 @@ systemctl disable systemd-resolved.service # 关掉这个服务, 我们已经自
 cat /etc/systemd/network/eth.network # 检查网络设置, 默认为 dhcp
 ```
 > 
-# 安装 kernel
+# 安装 kernel 和 dtb
 
 ```sh
 ping -c 3 www.163.com # 确保网络 OK 
-
 pacman-key --init # 获取 pacman 运行所需要的 key
 pacman-key --populate archlinuxarm # 获取 pacman 运行所需要的 key
 pacman -Syu # 更新一下系统
 
-pacman -Q | grep linux-aarch64 # 看看是否有安装官方的 kernel
-pacman -Rcsun linux-aarch64 # 删除官方的 kernel
-pacman -Rcsun linux-aarch64-headers # 删除官方的 headers, 如果存在的话. 
+# 安装内核
+pacman -S --needed linux-aarch64
 
-自行编译内核:
-https://github.com/cattyhouse/pkgbuild-linux-phicomm-n1
-
-pacman -U *.pkg.tar.zst # 安装
+# 安装 dtb
+pacman -S --needed gcc curl dtc git # 安装所需工具
+git clone https://github.com/cattyhouse/build_dtb && cd build_dtb
+ver=$(pacman -Q linux-aarch64 | cut -d ' ' -f2 | cut -d- -f1)
+# 生成 dtb, 一般只需要几秒时间.
+./build.sh mainline $ver
 sync
 ```
+
 # 挂载新版 u-boot
 
 >N1 系统自带了 u-boot, 但是只能启动打了 TEXT_OFFSET 补丁的内核, 所以为了启动一个原生的内核, 需要挂载新版本的 u-boot, 所有脚本已经写好, 只需复制到 boot 分区, N1 就可以用自身的 u-boot, 挂载这个新的 u-boot
@@ -124,7 +125,7 @@ sync
 1. 下载文件
     ```sh
     ping -c 3 www.163.com # 确保网络 OK
-    pacman -S --needed --noconfirm git
+    pacman -S --needed git
     cd /tmp && git clone --depth 1 https://github.com/cattyhouse/new-uboot-for-N1
     cd new-uboot-for-N1
     cp -fr * /boot/
