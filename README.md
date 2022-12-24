@@ -169,3 +169,59 @@ ssh root@n1_ip # 然后输入密码
 ```sh
 # TODO
 ```
+
+# ext4 on /boot
+
+> just a note, if you don't know what it is, DO NOT run it
+
+```sh
+# ref: https://bugcheck.win/2019/03/06/use-ext4-for-boot-partition-on-phicomm-n1/
+
+# we do everything as root so redirect simply works 
+((EUID)) && sudo su
+
+# format p1 of mmc1
+cd / # make sure we do not block anything
+mkdir -p /boot.bk
+cp -a /boot/* /boot.bk/ # backup our files
+umount -f /boot
+fdisk /dev/mmcblk1 # change partition id, i like fdisk
+t 1 83 w # manual input one by one
+mkfs.ext4 /dev/mmcblk1p1 # format it as ext4
+systemctl daemon-reload # fuck systemd
+mount /dev/mmcblk1p1 /boot # remount
+mv /boot.bk/* /boot/ # cp back our files
+rm -rf /boot.bk # clean
+
+# fstab
+boot_uuid=$(blkid -o value -s UUID /dev/mmcblk1p1)
+printf '%s\n' "UUID=$boot_uuid /boot ext4 rw,relatime,data=writeback 0 2" >> /etc/fstab # add a new fstab line
+sed -i '/vfat/d' /etc/fstab # remove any vfat lines
+cat /etc/fstab # review
+
+# internal u-boot event
+pacman -S uboot-tools # this is a must have
+printf '%s\n' '/dev/mmcblk1 0x27400000 0x10000' > /etc/fw_env.config # enable the ability to modify u-boot environment
+
+fw_setenv start_autoscript 'if usb start; then run start_usb_autoscript; fi; run start_emmc_autoscript' # start usb before mmc
+
+fw_setenv start_emmc_autoscript 'if ext4load mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi; if fatload mmc 1 1020000 emmc_autoscript; then autoscr 1020000; fi;' # look for ext4 first, fallback to fat
+
+fw_setenv start_usb_autoscript 'for usbdev in 0 1 2 3; do if ext4load usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; if fatload usb ${usbdev} 1020000 s905_autoscript; then autoscr 1020000; fi; done' # same as above, but for usb
+
+# review
+fw_printenv | grep -E 'start_autoscript=|start_usb_autoscript=|start_emmc_autoscript=' # always review what have been done
+
+# external uboot config to load mainline kernel
+# for mmc
+printf '%s\n' 'for mdev in 1 0 2 ; do if ext4load mmc ${mdev} 0x1000000 uboot; then go 0x1000000; fi; if fatload mmc ${mdev} 0x1000000 uboot; then go 0x1000000; fi; done' > /boot/emmc_autoscript.cmd # again, ext4 first, fallback to fat
+mkimage -C none -A arm64 -T script -d /boot/emmc_autoscript.cmd /boot/emmc_autoscript
+
+# for usb
+printf '%s\n' 'for udev in 0 1 2 3 ; do if ext4load usb ${udev} 0x1000000 uboot; then go 0x1000000; fi; if fatload usb ${udev} 0x1000000 uboot; then go 0x1000000; fi; done' > /boot/s905_autoscript.cmd # same as above
+mkimage -C none -A arm64 -T script -d /boot/s905_autoscript.cmd /boot/s905_autoscript
+
+# time to reboot
+reboot
+```
+
