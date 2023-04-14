@@ -134,7 +134,7 @@ sync
 
     ```sh
     root_uuid=$(lsblk -n -o UUID /dev/sda2)
-    sed -i "s/root_uuid/${root_uuid}/" /boot/extlinux/extlinux.conf
+    sed -i "s/replace_me_with_root_uuid/${root_uuid}/" /boot/extlinux/extlinux.conf
     # 确认一下修改是否成功
     grep ${root_uuid} /boot/extlinux/extlinux.conf
     ```
